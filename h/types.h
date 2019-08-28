@@ -54,6 +54,12 @@ typedef struct state_t {
 
 } state_t, *state_PTR;
 
+/* our pcb structure */
+typedef struct pcb_t {
+  pcb_t * p_next;
+  pcb_t * p_prev;
+} pcb_t, * pcb_PTR; 
+
 #define	s_at	s_reg[0]
 #define	s_v0	s_reg[1]
 #define s_v1	s_reg[2]
