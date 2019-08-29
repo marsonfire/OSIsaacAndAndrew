@@ -57,13 +57,25 @@ int emptyProcQ (pcb_PTR tp){
 }
 
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
-	//to be written when I have more than 24 minutes
-	//I think this and removing are the most important thing we can do right now, so
-	//may want to work on that next/together
+	//we have an empty queue, so create a new one
+	if(emptyProcQ()){
+		p->p_next = p;  //p's next points to itself
+		p->p_prev = p;	//p's previous points to itself
+		*tp = p;		//the tail pointer is p since it's the only node in the queue
+	}
+	//if here, we don't have an empty queue
+	else{
+		pcb_PTR temp = *tp;			//save the tail pointer in a temp var to be used later
+		*tp = p;					//make the tail pointer point to our new node since it's going to the end
+		p->p_next = temp->p_next;	//make p's next point to the head, which is what temp's (the previous tail) next was
+		temp->p_next = p;			//temp is now 2nd to last and p is last so set it's p_next
+		p->p_prev = temp;			//p's previous is now temp
+		p->p_next->p_prev = p;		//p's next = the head, make the head's previous be p so it's not pointing to the previous tail
+	}
 }
 
 pcb_PTR removeProcQ (pcb_PTR *tp){
-	//see above comment
+	
 }
 
 pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
