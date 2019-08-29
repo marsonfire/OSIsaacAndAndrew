@@ -19,6 +19,25 @@ void freePCB(pcb_PTR p){
 
 //allocate space for pcbs?
 pcb_PTR allocPcb (){
+	if(pcbFree_h == null){
+    	return null;//Return null if pcbFree list is empty
+ 	}
+	//remove list element here once implemented/figured out
+
+
+	//creates placeholder, sets to current list element
+	pcb_PTR = temp;
+	temp = pcbFree_h;
+
+	pcbFree_h = pcbFree_h -> p_next;//cycles element
+	//queue values to null
+	temp -> p_next = null;
+	temp -> p_prev = null;
+
+	//field values to be set to null here, will double check those soon
+
+	//once all is set, return new element
+	return temp;
 
 }
 
