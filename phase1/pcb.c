@@ -9,21 +9,19 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*puts pcb p back on the free list */
 void freePCB(pcb_PTR p){
-  /*insertProcQ here but into the freePCB list*/
-  
+  /*insert new p into pcbFree */
+  insertProcQ(&pcbFree_h, p);
 }
 
 /*allocate space for pcbs? */
 pcb_PTR allocPcb (){
+  /*creates placeholder, sets to current list element*/
+	pcb_PTR temp = pcbFree_h;
 	if(&pcbFree_h == NULL){
 	  return NULL;    /*Return null if pcbFree list is empty*/
  	}
 	/*remove list element here once implemented/figured out */
 
-
-	/*creates placeholder, sets to current list element*/
-	pcb_PTR = temp;
-	temp = *pcbFree_h;
 
 	*pcbFree_h = *pcbFree_h -> p_next;/*cycles element*/
 	/*queue values to null*/
@@ -39,10 +37,10 @@ pcb_PTR allocPcb (){
 
 /*create 20 of them to go on the free list*/
 void initPcbs(){
-  static pcb_t pcbTable[MAXPROC];
+  int i;
   pcbFree_h = mkEmptyProcQ();
-  for(int i = 0; i < MAXPROC; i++){
-    insertProcQ(&pcbFree_h, &pcbTable(i));
+  for(i = 0; i < MAXPROC; i++){
+    insertProcQ(&pcbFree_h, pcb_PTR p));
   }
 }
 
