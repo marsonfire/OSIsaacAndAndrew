@@ -56,7 +56,7 @@ int emptyProcQ (pcb_PTR tp){
 
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
   /*we have an empty queue, so create a new one*/
-	if(emptyProcQ()){
+	if(emptyProcQ(pcbFree_h)){
 	  p->p_next = p;  /*p's next points to itself*/
 	  p->p_prev = p;  /*p's previous points to itself*/
 	  *tp = p;	  /*the tail pointer is p since it's the only node in the queue*/
@@ -75,12 +75,12 @@ void insertProcQ (pcb_PTR *tp, pcb_PTR p){
 pcb_PTR removeProcQ (pcb_PTR *tp){
   pcb_PTR p;
   /*empty queue so return nothing*/
-  if(emptyProcQ()){
+  if(emptyProcQ(pcbFree_h)){
     return NULL;
   }
   /*otherwise, we'll need to remove the first one and return it*/
   else{
-    p = *tp->p_next;                                   /*set p to be the tail pointers next (head) of the queue that we'll remove*/
+    p = tp->p_next;                                   /*set p to be the tail pointers next (head) of the queue that we'll remove*/
     *tp->p_next = *tp->p_next->p_next;                 /*set tp's next to be the 2nd in queue (new head)*/
     *tp->p_next->p_prev->p_next = NULL;                /*set the previous head's next to null*/
     *tp->p_next->p_prev->p_next = NULL;                /*set the previous head's prev to null*/
