@@ -57,7 +57,20 @@ typedef struct state_t {
 typedef struct pcb_t {
   struct pcb_t * p_next;
   struct pcb_t * p_prev;
-} pcb_t, * pcb_PTR; 
+  /*tree stuf*/
+  struct pcb_t * p_parent;
+  struct pcb_t * p_child;
+  struct pcb_t * p_nextSib;
+  struct pcb_t * p_prevSib;
+  
+} pcb_t, * pcb_PTR;
+
+/* semaphore descriptor type */
+typedef struct semd t {
+  struct semd t *s next;   /* next element on the ASL */
+  int *s semAdd;           /* pointer to the semaphore */
+  pcb t *s procQ;          /*tail pointer to a process queue */
+} semd t;
 
 #define	s_at	s_reg[0]
 #define	s_v0	s_reg[1]

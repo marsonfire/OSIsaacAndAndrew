@@ -247,12 +247,14 @@ void main() {
 	for (i = 0; i < 10; i++) 
 		freePcb(procp[i]);
 
-
+	
 	/* check ASL */
-	initASL();
+	
+	   initASL();
 	addokbuf("Initialized active semaphore list   \n");
 
 	/* check removeBlocked and insertBlocked */
+	
 	addokbuf("insertBlocked test #1 started  \n");
 	for (i = 10; i < MAXPROC; i++) {
 		procp[i] = allocPcb();
@@ -267,7 +269,8 @@ void main() {
 	}
 
 	/* check if semaphore descriptors are returned to free list */
-	p = removeBlocked(&sem[11]);
+	
+p = removeBlocked(&sem[11]);
 	if (insertBlocked(&sem[11],p))
 		adderrbuf("removeBlocked: fails to return to free list   ");
 
@@ -312,6 +315,7 @@ void main() {
 		adderrbuf("out/headBlocked: unexpected nonempty queue   ");
 	addokbuf("headBlocked and outBlocked ok   \n");
 	addokbuf("ASL module ok   \n");
+
 	addokbuf("So Long and Thanks for All the Fish\n");
 
 }
