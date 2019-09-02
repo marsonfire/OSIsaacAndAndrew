@@ -27,8 +27,11 @@ pcb_PTR allocPcb (){
 	  /*queue values to null*/
 	  temp->p_next = NULL;
 	  temp->p_prev = NULL;
-	
-	  /*field values to be set to null here, will double check those soon*/
+	  /*tree values set to NULL*/
+	  temp->p_child = NULL;
+	  temp->p_parent = NULL;
+	  temp->p_nextSib = NULL;
+	  temp->p_prevSib = NULL;
 
 	  /*once all is set, return new element*/
 	}
@@ -153,17 +156,84 @@ pcb_PTR headProcQ (pcb_PTR tp){
 }
 
 int emptyChild(pcb_PTR p){
-
+  return p->p_child == NULL;
 }
 
-void insertChild(pcb_PTR prnt, pcb_PTR p){
-
+void insertChild(pcb_PTR parent, pcb_PTR p){
+  /*parent has no kids :( */
+  if(emptyChild(parent)){
+    parent->p_child = p;
+    p->p_parent = parent;
+  }
+  /*parent has kids (good Catholics) */
+  else{
+    parent->p_child->p_prevSib = p;
+    p->p_nextSib = NULL;
+    p->p_parent = parent;
+    p->p_nextSib = parent->p_child;
+    parent->p_child = p;
+  }
 }
 
-pcb_PTR removeChild(pcb_PTR p){
-
+pcb_PTR removeChild(pcb_PTR parent){
+  /*no kids, so don't remove anything, just return null */
+  if(emptyChild(parent)){
+    debug(1);
+    return NULL;
+  }
+  /*only one child*/
+  else if(parent->p_child->p_nextSib == NULL){
+    debug(2);
+    pcb_PTR child = parent->p_child;
+    parent->p_child->p_parent = NULL;
+    parent->p_child = NULL;
+    return child;
+  }
+  /* more than one child */
+  else{
+    debug(3);
+    pcb_PTR firstChild = parent->p_child;
+    parent->p_child->p_nextSib->p_prevSib = NULL;
+    parent->p_child = parent->p_child->p_nextSib;
+    return firstChild;
+  }
 }
 
 pcb_PTR outChild(pcb_PTR p){
-
+  /* orphan child has no parents :( */
+  if(p->p_parent == NULL){
+    return NULL;
+  }
+  /*only 1 child */
+  else if(p->p_nextSib == NULL && p->p_prevSib == NULL){
+    p->p_parent->p_child = NULL;
+    p->p_parent = NULL;
+    return p;
+  }
+  /* more than 1 one child */
+  else{
+    /* first child is what we're looking for */
+    if(p->p_prevSib == NULL){
+      p->p_parent->p_child = NULL;
+      p->p_parent = NULL;
+      p->p_nextSib = NULL;
+      return p;
+    }
+    /* last child is what we're looking for */
+    else if(p->p_nextSib == NULL){
+      p->p_prevSib->p_nextSib = NULL;
+      p->p_prevSib = NULL;
+      p->p_parent = NULL;
+      return p;
+    }
+    /*something in the middle to remove */
+    else {
+      p->p_prevSib->p_nextSib = p->p_nextSib;
+      p->p_nextSib->p_prevSib = p->p_prevSib;
+      p->p_nextSib = NULL;
+      p->p_prevSib = NULL;
+      p->p_parent = NULL;
+      return p;
+    }
+  }
 }
