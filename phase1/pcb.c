@@ -12,15 +12,6 @@ void debug(int a){
   i = 0;
 }
 
-void debug2(int a){
-  int i;
-  i = 0;
-}
-
-void debug3(int a){
-  int i;
-  i = 0;
-}
 
 /*puts pcb p back on the free list */
 void freePcb(pcb_PTR p){
@@ -31,12 +22,9 @@ void freePcb(pcb_PTR p){
 /*allocate space for pcbs? */
 pcb_PTR allocPcb (){
   /*creates placeholder, sets to current list element*/
-  debug(10);
   pcb_PTR temp = removeProcQ(&pcbFree_h);
-  debug(1);
-	if(temp != NULL){  
+	if(temp != NULL){
 	  /*queue values to null*/
-	  debug(2);
 	  temp->p_next = NULL;
 	  temp->p_prev = NULL;
 	
@@ -44,7 +32,6 @@ pcb_PTR allocPcb (){
 
 	  /*once all is set, return new element*/
 	}
-	debug(3);
 	return temp;
 	
 }
@@ -71,14 +58,17 @@ int emptyProcQ (pcb_PTR tp){
 }
 
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
+  debug(1);
   /*we have an empty queue, so create a new one*/
-	if(emptyProcQ(pcbFree_h)){
+  if(emptyProcQ(*tp)){
+      debug(2);
 	  p->p_next = p;  /*p's next points to itself*/
 	  p->p_prev = p;  /*p's previous points to itself*/
 	  *tp = p;	  /*the tail pointer is p since it's the only node in the queue*/
 	}
 	/*if here, we don't have an empty queue*/
 	else{
+	  debug(3);
 	  pcb_PTR temp = *tp;			/*save the tail pointer in a temp var to be used later*/
 	  *tp = p;					/*make the tail pointer point to our new node since it's going to the end*/
 	  p->p_next = temp->p_next;	/*make p's next point to the head, which is what temp's (the previous tail) next was*/
@@ -89,10 +79,8 @@ void insertProcQ (pcb_PTR *tp, pcb_PTR p){
 }
 
 pcb_PTR removeProcQ (pcb_PTR *tp){
-  debug(100);
     /*empty queue so return nothing*/
-  if(emptyProcQ(pcbFree_h)){
-    debug(4);
+  if(emptyProcQ(*tp)){
     return NULL;
   }
   else if((*tp)->p_next == (*tp)){
@@ -102,12 +90,11 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
   }
   /*otherwise, we'll need to remove the first one and return it*/
   else{
-    debug(5);
     pcb_PTR head = (*tp)->p_next;           /*head that we'll remove*/
-    (*tp)->p_next->p_next->p_prev  = (*tp);           /*tp's next is now the 2nd in queue (new head)*/
-    /*(*tp)->p_next->p_prev->p_prev = NULL;          /*the old head's previous is null, so it doesn't point to the tail anymore*/
-    /* (*tp)->p_next->p_prev->p_next = NULL;*/           /*the old head's next is null, so it doesn't point to the new head anymore */
-    (*tp)->p_next = (*tp)->p_next->p_next;              /*set the new head's next to the be the tail */
+    (*tp)->p_next->p_next->p_prev  = (*tp);         /*sets the new head's previous to the tail */
+    (*tp)->p_next = (*tp)->p_next->p_next;         /*set the new head */
+    head->p_next = NULL;
+    
     return head;
   }
 }
@@ -117,7 +104,7 @@ pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
 }
 
 pcb_PTR headProcQ (pcb_PTR tp){
-  if(emptyProcQ(pcbFree_h)){
+  if(emptyProcQ(tp)){
     return NULL;
   }
   else{
