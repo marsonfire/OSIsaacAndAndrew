@@ -7,6 +7,21 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*pcb.e is basically an interface to go off of */
 
+void debug(int a){
+  int i;
+  i = 0;
+}
+
+void debug2(int a){
+  int i;
+  i = 0;
+}
+
+void debug3(int a){
+  int i;
+  i = 0;
+}
+
 /*puts pcb p back on the free list */
 void freePcb(pcb_PTR p){
   /*insert new p into pcbFree */
@@ -16,30 +31,30 @@ void freePcb(pcb_PTR p){
 /*allocate space for pcbs? */
 pcb_PTR allocPcb (){
   /*creates placeholder, sets to current list element*/
-	pcb_PTR temp = pcbFree_h;
-	if(&pcbFree_h == NULL){
-	  return NULL;    /*Return null if pcbFree list is empty*/
- 	}
-	/*remove list element here once implemented/figured out */
+  debug(10);
+  pcb_PTR temp = removeProcQ(&pcbFree_h);
+  debug(1);
+	if(temp != NULL){  
+	  /*queue values to null*/
+	  debug(2);
+	  temp->p_next = NULL;
+	  temp->p_prev = NULL;
+	
+	  /*field values to be set to null here, will double check those soon*/
 
-
-	*pcbFree_h = *pcbFree_h -> p_next;/*cycles element*/
-	/*queue values to null*/
-	temp -> p_next = NULL;
-	temp -> p_prev = NULL;
-
-	/*field values to be set to null here, will double check those soon*/
-
-	/*once all is set, return new element*/
+	  /*once all is set, return new element*/
+	}
+	debug(3);
 	return temp;
-
+	
 }
 
 /*create 20 of them to go on the free list*/
 void initPcbs(){
   int i;
   static pcb_t procTable[MAXPROC];                /*create a global array with 20 pcb_t */
-  pcbFree_h = mkEmptyProcQ();                     /*set our global queue to be nothing/reset it */
+  pcbFree_h = mkEmptyProcQ();
+  /*set our global queue to be nothing/reset it */
   for(i = 0; i < MAXPROC; i++){
     insertProcQ(&pcbFree_h, &procTable[i]);       /*put each pcb_t in our global queue*/
   }
@@ -74,17 +89,25 @@ void insertProcQ (pcb_PTR *tp, pcb_PTR p){
 }
 
 pcb_PTR removeProcQ (pcb_PTR *tp){
+  debug(100);
     /*empty queue so return nothing*/
   if(emptyProcQ(pcbFree_h)){
+    debug(4);
     return NULL;
+  }
+  else if((*tp)->p_next == (*tp)){
+    pcb_PTR head = (*tp);
+    (*tp) = mkEmptyProcQ();
+    return head;
   }
   /*otherwise, we'll need to remove the first one and return it*/
   else{
+    debug(5);
     pcb_PTR head = (*tp)->p_next;           /*head that we'll remove*/
-    (*tp)->p_next = (*tp)->p_next->p_next;           /*tp's next is now the 2nd in queue (new head)*/
-    (*tp)->p_next->p_prev->p_prev = NULL;           /*the old head's previous is null, so it doesn't point to the tail anymore*/
-    (*tp)->p_next->p_prev->p_next = NULL;           /*the old head's next is null, so it doesn't point to the new head anymore */
-    (*tp)->p_next->p_next = (*tp);              /*set the new head's next to the be the tail */
+    (*tp)->p_next->p_next->p_prev  = (*tp);           /*tp's next is now the 2nd in queue (new head)*/
+    /*(*tp)->p_next->p_prev->p_prev = NULL;          /*the old head's previous is null, so it doesn't point to the tail anymore*/
+    /* (*tp)->p_next->p_prev->p_next = NULL;*/           /*the old head's next is null, so it doesn't point to the new head anymore */
+    (*tp)->p_next = (*tp)->p_next->p_next;              /*set the new head's next to the be the tail */
     return head;
   }
 }
