@@ -8,7 +8,7 @@ HIDDEN pcb_PTR pcbFree_h;
 /*pcb.e is basically an interface to go off of */
 
 /*puts pcb p back on the free list */
-void freePCB(pcb_PTR p){
+void freePcb(pcb_PTR p){
   /*insert new p into pcbFree */
   insertProcQ(&pcbFree_h, p);
 }
