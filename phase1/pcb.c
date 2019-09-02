@@ -58,17 +58,14 @@ int emptyProcQ (pcb_PTR tp){
 }
 
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
-  debug(1);
   /*we have an empty queue, so create a new one*/
   if(emptyProcQ(*tp)){
-      debug(2);
 	  p->p_next = p;  /*p's next points to itself*/
 	  p->p_prev = p;  /*p's previous points to itself*/
 	  *tp = p;	  /*the tail pointer is p since it's the only node in the queue*/
 	}
 	/*if here, we don't have an empty queue*/
-	else{
-	  debug(3);
+	else{;
 	  pcb_PTR temp = *tp;			/*save the tail pointer in a temp var to be used later*/
 	  *tp = p;					/*make the tail pointer point to our new node since it's going to the end*/
 	  p->p_next = temp->p_next;	/*make p's next point to the head, which is what temp's (the previous tail) next was*/
@@ -83,6 +80,7 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
   if(emptyProcQ(*tp)){
     return NULL;
   }
+  /*only one element in the queue*/
   else if((*tp)->p_next == (*tp)){
     pcb_PTR head = (*tp);
     (*tp) = mkEmptyProcQ();
@@ -94,13 +92,55 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
     (*tp)->p_next->p_next->p_prev  = (*tp);         /*sets the new head's previous to the tail */
     (*tp)->p_next = (*tp)->p_next->p_next;         /*set the new head */
     head->p_next = NULL;
-    
     return head;
   }
 }
 
 pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
-  
+  if(emptyProcQ(*tp)){
+    return NULL;
+  }
+  /*only one element in the queue*/
+  else if((*tp)->p_next ==(*tp)){
+    pcb_PTR head = (*tp);
+    /* the one element in the queue is what we're looking for*/
+    if(head == p){
+      removeProcQ((*tp));
+    }
+    /* that one element wasn't the one we're looking for, so return null */ 
+    else {
+      return NULL;
+    }
+  }
+  /*more than one element in the queue */
+  else{
+    pcb_PTR pcbLookingAt = (*tp)->p_next; /*the head*/
+    /* the head is the element that we're looking for, so just remove it like normal*/
+    if(pcbLookingAt == p){
+      removeProcQ(tp);
+    }
+    /* the one we're looking for is the tail */
+    else if((*tp) == p){
+      pcb_PTR temp = (*tp);
+      (*tp)->p_prev->p_next = (*tp)->p_next;       /*the new tail's next is set to the head */
+      (*tp)->p_next->p_prev = (*tp)->p_prev;       /*the head's previous is set to tail's previous */
+      (*tp) = (*tp)->p_prev;                         /*the new tail is set as the new tail (old tail's previous */
+      return temp;
+    }
+    /* remove something from the middle */
+    else{
+      pcbLookingAt = (*tp)->p_next->p_next;       /*already checked for the head, so look at the second element */
+      while(pcbLookingAt != (*tp)){
+	if(pcbLookingAt  == p){
+	  pcbLookingAt->p_prev->p_next = pcbLookingAt->p_next;         /*set the previous element's next to the one ahead of the one we're looking at */
+	  pcbLookingAt->p_next->p_prev = pcbLookingAt->p_prev;         /*set the next element's prevoius to the one behind the one we're looking at */
+	  return pcbLookingAt;
+	}
+	pcbLookingAt = pcbLookingAt->p_next;
+      }
+      return NULL;
+    }
+  }
 }
 
 pcb_PTR headProcQ (pcb_PTR tp){
