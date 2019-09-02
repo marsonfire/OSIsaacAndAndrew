@@ -66,11 +66,11 @@ typedef struct pcb_t {
 } pcb_t, * pcb_PTR;
 
 /* semaphore descriptor type */
-typedef struct semd t {
-  struct semd t *s next;   /* next element on the ASL */
-  int *s semAdd;           /* pointer to the semaphore */
-  pcb t *s procQ;          /*tail pointer to a process queue */
-} semd t;
+typedef struct semd_t {
+  struct semd_t *s_next;   /* next element on the ASL */
+  int *s_semAdd;           /* pointer to the semaphore */
+  pcb_t *s_procQ;          /*tail pointer to a process queue */
+} semd_t;
 
 #define	s_at	s_reg[0]
 #define	s_v0	s_reg[1]
