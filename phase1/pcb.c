@@ -90,7 +90,7 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
 }
 
 pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
-
+  
 }
 
 pcb_PTR headProcQ (pcb_PTR tp){
@@ -102,3 +102,18 @@ pcb_PTR headProcQ (pcb_PTR tp){
   }
 }
 
+int emptyChild(pcb_PTR p){
+
+}
+
+void insertChild(pcb_PTR prnt, pcb_PTR p){
+
+}
+
+pcb_PTR removeChild(pcb_PTR p){
+
+}
+
+pcb_PTR outChild(pcb_PTR p){
+
+}
