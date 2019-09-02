@@ -7,6 +7,8 @@
  * 
  ****************************************************************************/
 
+#define MAXPROC 20
+
 /* Hardware & software constants */
 #define PAGESIZE		4096	/* page size in bytes */
 #define WORDLEN			4		/* word size in bytes */
@@ -84,8 +86,6 @@
 /* Useful operations */
 #define STCK(T) ((T) = ((* ((cpu_t *) TODLOADDR)) / (* ((cpu_t *) TIMESCALEADDR))))
 #define LDIT(T)	((* ((cpu_t *) INTERVALTMR)) = (T) * (* ((cpu_t *) TIMESCALEADDR))) 
-
-int MAXPROC = 20;
 
 
 #endif

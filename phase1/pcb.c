@@ -38,9 +38,10 @@ pcb_PTR allocPcb (){
 /*create 20 of them to go on the free list*/
 void initPcbs(){
   int i;
-  pcbFree_h = mkEmptyProcQ();
+  static pcb_t procTable[MAXPROC];                /*create a global array with 20 pcb_t */
+  pcbFree_h = mkEmptyProcQ();                     /*set our global queue to be nothing/reset it */
   for(i = 0; i < MAXPROC; i++){
-    insertProcQ(&pcbFree_h, pcb_PTR p));
+    insertProcQ(&pcbFree_h, &procTable[i]);       /*put each pcb_t in our global queue*/
   }
 }
 
