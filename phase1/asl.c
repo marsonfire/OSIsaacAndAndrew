@@ -42,7 +42,7 @@ void initASL (){
   
 }
 
-/* similar to allocPcbs from pcb.c */
+/* get the head of the free list, and return it so it can be used */
 HIDDEN semd_t * allocSemd(){
   semd_t * newSemd = semdFree_h;
   /* if the whole free list is null, return null */
@@ -57,3 +57,18 @@ HIDDEN semd_t * allocSemd(){
     return newSemd;
   }
 }
+
+/* want to take s off the active list and put it on the free list */
+HIDDEN void free(semd_t * s){
+  if(semdFree_h == NULL){
+    /* if the free list is empty/null, then make  our s the free list */
+    s->s_next = NULL;
+    semdFree_h = s;
+  }
+  /* otherwise, we want to just add s  to the free list (top of the stack) */
+  else{
+    s->s_next = semdFree_h;
+  }
+}
+
+
