@@ -6,6 +6,10 @@
 HIDDEN semd_t *semdFree_h;    /*Free semaphore list*/
 HIDDEN semd_t *semdActive_h;  /*Active semaphore list*/
 
+HIDDEN semd_t * allocSemd();
+HIDDEN void free(semd_t *s);
+HIDDEN semd_t * search(int * semAdd);
+
 int insertBlocked (int *semAdd, pcb_PTR p){
 
 }
@@ -36,4 +40,20 @@ void initASL (){
     /*semd add and link function to be written*/
   }
   
+}
+
+/* similar to allocPcbs from pcb.c */
+HIDDEN semd_t * allocSemd(){
+  semd_t * newSemd = semdFree_h;
+  /* if the whole free list is null, return null */
+  if(semdFree_h == NULL){
+    return NULL;
+  }
+  else{
+    /* if here, we're going to reset the node and return it to be put on the free list */
+    newSemd->s_next = NULL;
+    newSemd->s_semAdd = NULL;
+    newSemd->s_procQ = NULL;
+    return newSemd;
+  }
 }
