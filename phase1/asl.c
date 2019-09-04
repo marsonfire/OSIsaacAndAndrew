@@ -11,7 +11,7 @@ HIDDEN void free(semd_t *s);
 HIDDEN semd_t * search(int * semAdd);
 
 int insertBlocked (int *semAdd, pcb_PTR p){
-
+  
 }
 
 pcb_PTR removeBlocked (int *semAdd){
@@ -27,18 +27,24 @@ pcb_PTR headBlocked (int *semAdd){
 }
 
 void initASL (){
-  static semd_t semdTable[MAXPROC];/*unsure if needed*/
-  /*I believe we need to fill this +1/2 due to dummy nodes*/
-
+  static semd_t semdTable[MAXPROC+2];/*unsure if needed*/
+  
   /*Initialize both lists as NULL*/
   semdFree_h = NULL;
   semdActive_h = NULL;
 
   /*fill free list*/
   int i;
-  for(i=0;i<MAXPROC;i++){
-    /*semd add and link function to be written*/
+  for(i=0;i<MAXPROC+2;i++){
+    free(&semdTable[i]);
   }
+  /*create first dummy*/
+  semdActive_h = &semdTable[0];
+  semdActive_h -> s_semAdd = 0;
+
+  /*create last dummy*/
+  semdActive_h = &semdTable[MAXPROC+1];
+  semdActive_h -> s_semAdd = MAXINT;
   
 }
 
