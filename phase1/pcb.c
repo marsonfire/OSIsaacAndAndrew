@@ -7,7 +7,7 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*pcb.e is basically an interface to go off of */
 
-void debug(int a){
+void debugA(int a){
   int i;
   i = 0;
 }
@@ -178,12 +178,10 @@ void insertChild(pcb_PTR parent, pcb_PTR p){
 pcb_PTR removeChild(pcb_PTR parent){
   /*no kids, so don't remove anything, just return null */
   if(emptyChild(parent)){
-    debug(1);
     return NULL;
   }
   /*only one child*/
   else if(parent->p_child->p_nextSib == NULL){
-    debug(2);
     pcb_PTR child = parent->p_child;
     parent->p_child->p_parent = NULL;
     parent->p_child = NULL;
@@ -191,7 +189,6 @@ pcb_PTR removeChild(pcb_PTR parent){
   }
   /* more than one child */
   else{
-    debug(3);
     pcb_PTR firstChild = parent->p_child;
     parent->p_child->p_nextSib->p_prevSib = NULL;
     parent->p_child = parent->p_child->p_nextSib;
