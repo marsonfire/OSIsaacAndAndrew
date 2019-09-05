@@ -10,8 +10,9 @@ HIDDEN semd_t * allocSemd();
 HIDDEN void free(semd_t *s);
 HIDDEN semd_t * search(int * semAdd);
 
+/*Insert a specified pcb at a semd with a certain address*/
 int insertBlocked (int *semAdd, pcb_PTR p){
-  
+
 }
 
 pcb_PTR removeBlocked (int *semAdd){
@@ -77,4 +78,12 @@ HIDDEN void free(semd_t * s){
   }
 }
 
-
+/*Searches for slot where selected node would go, returns node*/
+HIDDEN semd_t * search(int * semAdd){
+  semd_t * temp = semdActive_h;
+  while(semAdd > temp->s_semAdd){
+    /*go to next node in active*/
+    temp = temp->s_next;
+  }
+  return temp;
+}
