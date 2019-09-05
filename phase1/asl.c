@@ -12,7 +12,25 @@ HIDDEN semd_t * search(int * semAdd);
 
 /*Insert a specified pcb at a semd with a certain address*/
 int insertBlocked (int *semAdd, pcb_PTR p){
-
+  semd_t * found  = search(semAdd);/*get semAdd semaphore, put in found, parent of what we actually want*/
+  semd_t * newSemd = allocSemd();
+  if(found->s_next->s_semAdd = semAdd){
+     found->s_next->s_procQ = p;
+     return 0;
+  }
+  else if(newSemd == NULL){
+    /* if here, we have attempted to get something from the free list, but there's no space left */
+    return 1;
+  }
+  else{
+    /* if here, we are going to use the allocated newSemd and add it to the semdActive_h and 
+       then going to put p on it */
+    semd_t * temp = found->s_next;
+    found->s_next = newSemd;
+    newSemd->s_next = temp;
+    newSemd->s_procQ = p;
+    newSemd->s_semAdd = semAdd;
+  }
 }
 
 pcb_PTR removeBlocked (int *semAdd){
@@ -78,12 +96,14 @@ HIDDEN void free(semd_t * s){
   }
 }
 
-/*Searches for slot where selected node would go, returns node*/
+/*Searches for slot where selected node would go, returns parent node*/
 HIDDEN semd_t * search(int * semAdd){
   semd_t * temp = semdActive_h;
+  semd_t * semdParent = semdActive_h;
   while(semAdd > temp->s_semAdd){
     /*go to next node in active*/
+    semdParent = temp;
     temp = temp->s_next;
   }
-  return temp;
+  return semdParent;
 }
