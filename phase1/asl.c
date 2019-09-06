@@ -28,13 +28,12 @@ int insertBlocked (int *semAdd, pcb_PTR p){
     insertProcQ(&(found->s_next->s_procQ),p);
     return 0;
   }
+  else if(newSemd == NULL){
+      return 1;
+  }
   else{
     /* if here, we are going to use the allocated newSemd and add it to the semdActive_h and 
        then going to put p on it */
-    semd_t *newSemd = allocSemd();
-    if(newSemd == NULL){
-      return 1;
-    }
     newSemd->s_next = found->s_next;
     found->s_next = newSemd;
     newSemd->s_procQ = NULL;
