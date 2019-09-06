@@ -22,33 +22,25 @@ void debug(int a){
 
 /*Insert a specified pcb at a semd with a certain address*/
 int insertBlocked (int *semAdd, pcb_PTR p){
-  debug(99);
   semd_t * found  = search(semAdd);/*get semAdd semaphore, put in found, parent of what we actually want*/
-  debug(6);
   semd_t * newSemd = allocSemd();
-  debug(7);
   if(found->s_next->s_semAdd == semAdd){
-    debug(1);
     insertProcQ(&(found->s_next->s_procQ),p);
-     return 0;
-  }
-  else if(newSemd == NULL){
-    /* if here, we have attempted to get something from the free list, but there's no space left */
-    debug(2);
-    return 1;
+    return 0;
   }
   else{
     /* if here, we are going to use the allocated newSemd and add it to the semdActive_h and 
        then going to put p on it */
-    debug(3);
-    semd_t * temp = found->s_next;
+    semd_t *newSemd = allocSemd();
+    if(newSemd == NULL){
+      return 1;
+    }
+    newSemd->s_next = found->s_next;
     found->s_next = newSemd;
-    newSemd->s_next = temp;
-    
+    newSemd->s_procQ = NULL;
     insertProcQ(&(newSemd->s_procQ),p);
-
     newSemd->s_semAdd = semAdd;
-    return 1;
+    return 0;
   }
 }
 
@@ -95,16 +87,21 @@ void initASL (){
 
   /*fill free list*/
   int i;
-  for(i=0;i<MAXPROC+2;i++){
+  for(i=0;i<MAXPROC;i++){
     free(&(semdTable[i]));
   }
-  /*create first dummy*/
-  semdActive_h = &semdTable[0];
-  semdActive_h -> s_semAdd = 0;
 
   /*create last dummy*/
   semdActive_h = &semdTable[MAXPROC+1];
+  semdActive_h->s_next = NULL;
   semdActive_h -> s_semAdd = (int *)MAXINT;
+  semdActive_h->s_procQ = NULL;
+
+  /*create first dummy*/
+  (semdTable[MAXPROC]).s_next = semdActive_h;
+  semdActive_h = &(semdTable[MAXPROC]);
+  semdActive_h -> s_semAdd = 0;
+  semdActive_h->s_procQ = NULL;
   
 }
 
@@ -142,15 +139,13 @@ HIDDEN void free(semd_t * s){
 
 /*Searches for slot where selected node would go, returns parent node*/
 HIDDEN semd_t * search(int * semAdd){
-  debug(1);
   semd_t * temp = semdActive_h;
-  debug(2);
+  if(semAdd == NULL){
+    semAdd = (int*)MAXINT;
+  }
   while(semAdd > temp->s_next->s_semAdd){
     /*go to next node in active*/
-    debug(3);
     temp = temp->s_next;
-    debug(4);
   }
-  debug(3);
   return temp;
 }
