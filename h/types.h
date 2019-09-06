@@ -62,6 +62,7 @@ typedef struct pcb_t {
   struct pcb_t * p_child;
   struct pcb_t * p_nextSib;
   struct pcb_t * p_prevSib;
+  int *p_semAdd
   
 } pcb_t, * pcb_PTR;
 

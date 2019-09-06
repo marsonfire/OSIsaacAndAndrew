@@ -25,13 +25,14 @@ int insertBlocked (int *semAdd, pcb_PTR p){
   semd_t * found  = search(semAdd);/*get semAdd semaphore, put in found, parent of what we actually want*/
   semd_t * newSemd = allocSemd();
   if(found->s_next->s_semAdd == semAdd){
+    p->p_semAdd = semAdd;
     insertProcQ(&(found->s_next->s_procQ),p);
     return 0;
   }
-  else if(newSemd == NULL){
-      return 1;
-  }
   else{
+    if(newSemd == NULL){
+      return 1;
+    }
     /* if here, we are going to use the allocated newSemd and add it to the semdActive_h and 
        then going to put p on it */
     newSemd->s_next = found->s_next;
@@ -39,40 +40,28 @@ int insertBlocked (int *semAdd, pcb_PTR p){
     newSemd->s_procQ = NULL;
     insertProcQ(&(newSemd->s_next->s_procQ),p);/**/
     newSemd->s_semAdd = semAdd;
+    p->p_semAdd = semAdd;
     return 0;
   }
 }
 
 pcb_PTR removeBlocked (int *semAdd){
-  semd_t * found = search(semAdd);
-  if(found == NULL){
-    debug(1);
-    return NULL;
+  semd_t *found = search(semAdd);
+  /* we found the semaphore in the asl with the ID we want to change */
+  if(found->s_next->s_semAdd == semAdd){
+    pcb_PTR returnedPCB = removeProcQ(&(found->s_next->s_procQ));
+    if(found->s_next->s_procQ == NULL){
+      semd_t * temp = found->s_next;
+      found->s_next = found->s_next->s_next;
+      /* if here, the asl node doesn't have a procq on it, so lets free it up*/
+      free(temp);
+    }
+    returnedPCB->p_semAdd = NULL;
+    return returnedPCB;
   }
-  else if(found->s_next->s_procQ == NULL){
-    debug(2);
-    semd_t * temp = found->s_next->s_next;
-    found->s_next = temp;
-    return NULL;
-  }
-  else if(found->s_next->s_semAdd == semAdd){
-    debug(3);
-    semd_t * temp = found->s_next->s_procQ;
-    pcb_PTR p = found->s_next->s_procQ;
-    found->s_next->s_procQ = NULL;
-    found->s_next = temp;
-    return p;
-  }  
-  else{
-    debug(4);
-    semd_t * temp = found->s_next->s_next;
-    pcb_PTR p = found->s_next->s_procQ;
-    found->s_next->s_procQ = NULL;
-    found->s_next->s_next =NULL;
-    found->s_next = temp;
-    return p;
-  }
+  return NULL;
 }
+
 
 pcb_PTR outBlocked (pcb_PTR p){
 
@@ -151,7 +140,7 @@ HIDDEN semd_t * search(int * semAdd){
     /*go to next node in active*/
     temp = temp->s_next;
     if((temp->s_next) == NULL){
-	break;
+      break;
     }
   }
   return temp;
