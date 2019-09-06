@@ -60,11 +60,31 @@ pcb_PTR removeBlocked (int *semAdd){
 
 
 pcb_PTR outBlocked (pcb_PTR p){
-
+  semd_t *found = search(p->p_semAdd);
+  /* we found the semaphore in the asl with the ID we want to change */
+  if(found->s_next->s_semAdd == p->p_semAdd){
+    pcb_PTR returnedPCB = outProcQ(&(found->s_next->s_procQ), p);
+    if(found->s_next->s_procQ == NULL){
+      semd_t * temp = found->s_next;
+      found->s_next = found->s_next->s_next;
+      /* if here, the asl node doesn't have a procq on it, so lets free it up*/
+      free(temp);
+    }    
+    returnedPCB->p_semAdd = NULL;
+    return returnedPCB;
+  }
+  return NULL;
 }
 
 pcb_PTR headBlocked (int *semAdd){
-
+  semd_t * found = search(semAdd);
+  /* we found it! so return it */
+  if(found->s_next->s_semAdd == semAdd){
+    return headProcQ(found->s_next->s_procQ);
+  }
+  else{
+    return NULL;
+  }
 }
 
 void initASL (){
