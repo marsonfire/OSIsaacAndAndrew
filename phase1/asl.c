@@ -1,7 +1,3 @@
-
-#ifndef lint
-static char vcid[] = "nil";
-#endif /* lint */
 /*asl.c stuff goes down below */
 #include "../h/const.h"
 #include "../h/types.h"
@@ -23,13 +19,13 @@ void debug(int a){
 /*Insert a specified pcb at a semd with a certain address*/
 int insertBlocked (int *semAdd, pcb_PTR p){
   semd_t * found  = search(semAdd);/*get semAdd semaphore, put in found, parent of what we actually want*/
-  semd_t * newSemd = allocSemd();
   if(found->s_next->s_semAdd == semAdd){
     p->p_semAdd = semAdd;
     insertProcQ(&(found->s_next->s_procQ),p);
     return 0;
   }
   else{
+    semd_t * newSemd = allocSemd();
     if(newSemd == NULL){
       return 1;
     }
@@ -38,7 +34,7 @@ int insertBlocked (int *semAdd, pcb_PTR p){
     newSemd->s_next = found->s_next;
     found->s_next = newSemd;
     newSemd->s_procQ = NULL;
-    insertProcQ(&(newSemd->s_next->s_procQ),p);/**/
+    insertProcQ(&(newSemd->s_procQ),p);/**/
     newSemd->s_semAdd = semAdd;
     p->p_semAdd = semAdd;
     return 0;
