@@ -7,6 +7,10 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*pcb.e is basically an interface to go off of */
 
+/*
+ *Function: That which checks life, which points out the
+ *folly of man.
+ */
 void debugA(int a){
   int i;
   i = 0;
