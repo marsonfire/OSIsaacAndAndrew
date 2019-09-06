@@ -18,8 +18,9 @@ void debug(int a){
 
 /*Insert a specified pcb at a semd with a certain address*/
 int insertBlocked (int *semAdd, pcb_PTR p){
-  semd_t * found  = search(semAdd);/*get semAdd semaphore, put in found, parent of what we actually want*/
+  semd_t * found  = search(semAdd);           /*get semAdd semaphore, put in found, parent of what we actually want*/
   if(found->s_next->s_semAdd == semAdd){
+    /* if here, we have found the place to insert the pcb and will do that */
     p->p_semAdd = semAdd;
     insertProcQ(&(found->s_next->s_procQ),p);
     return 0;
@@ -27,6 +28,7 @@ int insertBlocked (int *semAdd, pcb_PTR p){
   else{
     semd_t * newSemd = allocSemd();
     if(newSemd == NULL){
+      /* if here, we're blocked and can't insert */
       return 1;
     }
     /* if here, we are going to use the allocated newSemd and add it to the semdActive_h and 
@@ -45,13 +47,16 @@ pcb_PTR removeBlocked (int *semAdd){
   semd_t *found = search(semAdd);
   /* we found the semaphore in the asl with the ID we want to change */
   if(found->s_next->s_semAdd == semAdd){
+    /* get the one we want to remove */
     pcb_PTR returnedPCB = removeProcQ(&(found->s_next->s_procQ));
+    /* if the pcb is null, we'll need to fix some pointers and free up the semaphore */
     if(found->s_next->s_procQ == NULL){
       semd_t * temp = found->s_next;
       found->s_next = found->s_next->s_next;
       /* if here, the asl node doesn't have a procq on it, so lets free it up*/
       free(temp);
     }
+    /* then, just set the address and return the one we wanted to remove */
     returnedPCB->p_semAdd = NULL;
     return returnedPCB;
   }
@@ -63,6 +68,7 @@ pcb_PTR outBlocked (pcb_PTR p){
   semd_t *found = search(p->p_semAdd);
   /* we found the semaphore in the asl with the ID we want to change */
   if(found->s_next->s_semAdd == p->p_semAdd){
+    /* pull out the pcb that we want */
     pcb_PTR returnedPCB = outProcQ(&(found->s_next->s_procQ), p);
     if(found->s_next->s_procQ == NULL){
       semd_t * temp = found->s_next;
