@@ -140,9 +140,6 @@ HIDDEN void free(semd_t * s){
 /*Searches for slot where selected node would go, returns parent node*/
 HIDDEN semd_t * search(int * semAdd){
   semd_t * temp = semdActive_h;
-  if(semAdd == NULL){
-    semAdd = (int*)MAXINT;
-  }
   while(semAdd > temp->s_next->s_semAdd){
     /*go to next node in active*/
     temp = temp->s_next;
