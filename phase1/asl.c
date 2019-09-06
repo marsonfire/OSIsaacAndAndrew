@@ -25,16 +25,13 @@ int insertBlocked (int *semAdd, pcb_PTR p){
   semd_t * found  = search(semAdd);/*get semAdd semaphore, put in found, parent of what we actually want*/
   semd_t * newSemd = allocSemd();
   if(found->s_next->s_semAdd == semAdd){
-    debug(70);
     insertProcQ(&(found->s_next->s_procQ),p);
     return 0;
   }
   else if(newSemd == NULL){
-    debug(80);
       return 1;
   }
   else{
-    debug(90);
     /* if here, we are going to use the allocated newSemd and add it to the semdActive_h and 
        then going to put p on it */
     newSemd->s_next = found->s_next;
@@ -49,14 +46,17 @@ int insertBlocked (int *semAdd, pcb_PTR p){
 pcb_PTR removeBlocked (int *semAdd){
   semd_t * found = search(semAdd);
   if(found == NULL){
+    debug(1);
     return NULL;
   }
   else if(found->s_next->s_procQ == NULL){
+    debug(2);
     semd_t * temp = found->s_next->s_next;
     found->s_next = temp;
     return NULL;
   }
   else if(found->s_next->s_semAdd == semAdd){
+    debug(3);
     semd_t * temp = found->s_next->s_procQ;
     pcb_PTR p = found->s_next->s_procQ;
     found->s_next->s_procQ = NULL;
@@ -64,6 +64,7 @@ pcb_PTR removeBlocked (int *semAdd){
     return p;
   }  
   else{
+    debug(4);
     semd_t * temp = found->s_next->s_next;
     pcb_PTR p = found->s_next->s_procQ;
     found->s_next->s_procQ = NULL;
@@ -148,7 +149,6 @@ HIDDEN semd_t * search(int * semAdd){
   }
   while(semAdd > (temp->s_next->s_semAdd)){
     /*go to next node in active*/
-    debug(3);
     temp = temp->s_next;
     if((temp->s_next) == NULL){
 	break;
