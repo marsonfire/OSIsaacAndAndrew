@@ -16,7 +16,10 @@ void debug(int a){
 }
 
 
-/*Insert a specified pcb at a semd with a certain address*/
+/*
+*Function: Insert a specified pcb at a semd with a certain address. If the new semd is null,
+*return false.
+*/
 int insertBlocked (int *semAdd, pcb_PTR p){
   semd_t * found  = search(semAdd);           /*get semAdd semaphore, put in found, parent of what we actually want*/
   if(found->s_next->s_semAdd == semAdd){
@@ -43,6 +46,12 @@ int insertBlocked (int *semAdd, pcb_PTR p){
   }
 }
 
+/*
+ *Function: Search for a semaphor with semAdd. If none is found, return NULL.
+ *If one is found, remove the head of the pcb queue related to it and
+ *return a pointer to the removed pcb. If the semaphor becomes empty, 
+ *remove it.
+ */
 pcb_PTR removeBlocked (int *semAdd){
   semd_t *found = search(semAdd);
   /* we found the semaphore in the asl with the ID we want to change */
@@ -63,7 +72,10 @@ pcb_PTR removeBlocked (int *semAdd){
   return NULL;
 }
 
-
+/*
+ *Functon: Remove the pcb specified in the parameters, determined by the semAdd
+ *of the pcb. If p doesn't exist, return NULL. Otherwise, return p.
+ */
 pcb_PTR outBlocked (pcb_PTR p){
   semd_t *found = search(p->p_semAdd);
   /* we found the semaphore in the asl with the ID we want to change */
@@ -82,6 +94,10 @@ pcb_PTR outBlocked (pcb_PTR p){
   return NULL;
 }
 
+/*
+ *Function: Return a pointer to the head of the specified queue. If semAdd is 
+ *not found, return NULL. 
+ */
 pcb_PTR headBlocked (int *semAdd){
   semd_t * found = search(semAdd);
   /* we found it! so return it */
@@ -93,6 +109,9 @@ pcb_PTR headBlocked (int *semAdd){
   }
 }
 
+/*
+* Function: Initiate the ASL. Allocate 20 sempahores, with 2 dummy nodes, 1 at the beginning and 1 at the end.
+*/
 void initASL (){
   static semd_t semdTable[MAXPROC+2];/*unsure if needed*/
   /*Initialize both lists as NULL*/
@@ -119,7 +138,9 @@ void initASL (){
   
 }
 
-/* get the head of the free list, and return it so it can be used */
+/*
+* Function: Get the head of the free list and return it so that it can be used as a semaphore in the active list.
+*/
 HIDDEN semd_t * allocSemd(){
   semd_t * newSemd = semdFree_h;
   /* if the whole free list is null, return null */
@@ -136,7 +157,9 @@ HIDDEN semd_t * allocSemd(){
   }
 }
 
-/* want to take s off the active list and put it on the free list */
+/*
+* Function: Given a semaphore, take it off the active list and put it on the free list to be used later.
+*/
 HIDDEN void free(semd_t * s){
   if(semdFree_h == NULL){
     /* if the free list is empty/null, then make  our s the free list */
@@ -151,7 +174,9 @@ HIDDEN void free(semd_t * s){
   }
 }
 
-/*Searches for slot where selected node would go, returns parent node*/
+/*
+* Function: Given a semAdd, loop through the sempahore list and find the parent of the semaphore with semAdd
+*/
 HIDDEN semd_t * search(int * semAdd){
   semd_t * temp = semdActive_h;
 
