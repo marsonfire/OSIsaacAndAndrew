@@ -69,7 +69,7 @@ pcb_PTR outBlocked (pcb_PTR p){
       found->s_next = found->s_next->s_next;
       /* if here, the asl node doesn't have a procq on it, so lets free it up*/
       free(temp);
-    }    
+    }
     returnedPCB->p_semAdd = NULL;
     return returnedPCB;
   }

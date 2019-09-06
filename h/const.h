@@ -8,7 +8,9 @@
  ****************************************************************************/
 
 #define MAXPROC 20
-#define MAXINT 0xFFFFFFFF
+#ifndef MAXINT
+#define MAXINT 0xEFFFFFFF
+#endif
 
 /* Hardware & software constants */
 #define PAGESIZE		4096	/* page size in bytes */

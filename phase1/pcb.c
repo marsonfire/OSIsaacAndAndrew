@@ -7,6 +7,11 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*pcb.e is basically an interface to go off of */
 
+void debugA(int a){
+  int i;
+  i = 0;
+}
+
 /*
  *Function: Takes in a pcb p and inserts p into 
  * the pcb free list
@@ -32,6 +37,7 @@ pcb_PTR allocPcb (){
 	  temp->p_parent = NULL;
 	  temp->p_nextSib = NULL;
 	  temp->p_prevSib = NULL;
+    temp->p_semAdd = NULL;
 
 	  /*once all is set, return new element*/
 	}
@@ -137,7 +143,7 @@ pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
     pcb_PTR head = (*tp);
     /* the one element in the queue is what we're looking for*/
     if(head == p){
-      removeProcQ((*tp));
+      return removeProcQ((*tp));
     }
     /* that one element wasn't the one we're looking for, so return null */ 
     else {
@@ -149,7 +155,7 @@ pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
     pcb_PTR pcbLookingAt = (*tp)->p_next; /*the head*/
     /* the head is the element that we're looking for, so just remove it like normal*/
     if(pcbLookingAt == p){
-      removeProcQ(tp);
+      return removeProcQ(tp);
     }
     /* the one we're looking for is the tail */
     else if((*tp) == p){
@@ -163,12 +169,12 @@ pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
     else{
       pcbLookingAt = (*tp)->p_next->p_next;       /*already checked for the head, so look at the second element */
       while(pcbLookingAt != (*tp)){
-	if(pcbLookingAt  == p){
-	  pcbLookingAt->p_prev->p_next = pcbLookingAt->p_next;         /*set the previous element's next to the one ahead of the one we're looking at */
-	  pcbLookingAt->p_next->p_prev = pcbLookingAt->p_prev;         /*set the next element's prevoius to the one behind the one we're looking at */
-	  return pcbLookingAt;
-	}
-	pcbLookingAt = pcbLookingAt->p_next;
+  if(pcbLookingAt  == p){
+    pcbLookingAt->p_prev->p_next = pcbLookingAt->p_next;         /*set the previous element's next to the one ahead of the one we're looking at */
+    pcbLookingAt->p_next->p_prev = pcbLookingAt->p_prev;         /*set the next element's prevoius to the one behind the one we're looking at */
+    return pcbLookingAt;
+  }
+  pcbLookingAt = pcbLookingAt->p_next;
       }
       return NULL;
     }
