@@ -7,19 +7,19 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*pcb.e is basically an interface to go off of */
 
-void debugA(int a){
-  int i;
-  i = 0;
-}
-
-
-/*puts pcb p back on the free list */
+/*
+ *Function: Takes in a pcb p and inserts p into 
+ * the pcb free list
+ */
 void freePcb(pcb_PTR p){
   /*insert new p into pcbFree */
   insertProcQ(&pcbFree_h, p);
 }
 
-/*allocate space for pcbs? */
+/*
+ *Function: Takes an element off of the free list, and nullifies
+ *its values, setting the pcb up with a new slate. The nullified pcb
+ *is then returned for use, typically in a pcb queue. */
 pcb_PTR allocPcb (){
   /*creates placeholder, sets to current list element*/
   pcb_PTR temp = removeProcQ(&pcbFree_h);
@@ -39,7 +39,10 @@ pcb_PTR allocPcb (){
 	
 }
 
-/*create 20 of them to go on the free list*/
+/*
+*Function: Initializes the free list The list is first made empty, 
+*and then has a MAXPROC amount of pcbs inserted into the list.
+*/
 void initPcbs(){
   int i;
   static pcb_t procTable[MAXPROC];                /*create a global array with 20 pcb_t */
@@ -50,16 +53,26 @@ void initPcbs(){
   }
 }
 
-/*makes a pcb null/empty */
+/*
+ *Function: Makes a pcb null
+ */
 pcb_PTR mkEmptyProcQ (){
 	return NULL;
 }
 
-/*checks if a pcb is empty or not*/
+/*
+*Function: Checks if a pcb is empty or not, and returns the result
+*/
 int emptyProcQ (pcb_PTR tp){
 	return(tp == NULL);
 }
 
+/*
+ *Function: Inserts a pcb into a queue. There are two states for this:
+ *1. There is no queue. Create a queue with the only value being
+ *the one to be inserted.
+ *2. There is a queue. Insert the pcb as the new tail pointer.
+ */
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
   /*we have an empty queue, so create a new one*/
   if(emptyProcQ(*tp)){
@@ -69,15 +82,22 @@ void insertProcQ (pcb_PTR *tp, pcb_PTR p){
 	}
 	/*if here, we don't have an empty queue*/
 	else{;
-	  pcb_PTR temp = *tp;			/*save the tail pointer in a temp var to be used later*/
-	  *tp = p;					/*make the tail pointer point to our new node since it's going to the end*/
-	  p->p_next = temp->p_next;	/*make p's next point to the head, which is what temp's (the previous tail) next was*/
+	  pcb_PTR temp = *tp;	  /*save the tail pointer in a temp var to be used later*/
+	  *tp = p;	/*make the tail pointer point to our new node since it's going to the end*/
+	  p->p_next = temp->p_next;/*make p's next point to the head, which is what temp's (the previous tail) next was*/
 	  temp->p_next = p;			/*temp is now 2nd to last and p is last so set it's p_next*/
 	  p->p_prev = temp;			/*p's previous is now temp*/
 	  p->p_next->p_prev = p;		/*p's next = the head, make the head's previous be p so it's not pointing to the previous tail*/
 	}
 }
 
+
+/*
+ *Function: Removes a pcb from the tail.There are 3 cases for this:
+ *1. There is no queue. Return NULL.
+ *2. There is only 1 element in the queue. Remove that element.
+ *3. There are multiple elements. Remove the first pcb and return it.
+ */
 pcb_PTR removeProcQ (pcb_PTR *tp){
     /*empty queue so return nothing*/
   if(emptyProcQ(*tp)){
@@ -99,6 +119,15 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
   }
 }
 
+
+/*
+ *Function: Remove a specific element from the queue. There are 3 cases:
+ *1. The element is not in the queue. Return NULL.
+ *2. There is only one element. determine if it is the target, and
+ *return either NULL or the target based on if it is there.
+ *3. Multiple elements in queue. Search for the target, and either return
+ *the target or null if not found
+ */
 pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
   if(emptyProcQ(*tp)){
     return NULL;
@@ -146,6 +175,11 @@ pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
   }
 }
 
+
+/*
+ *Function: Returns a pointer to the first pcb, or head. If the queue is
+ *empty, return NULL.
+ */
 pcb_PTR headProcQ (pcb_PTR tp){
   if(emptyProcQ(tp)){
     return NULL;
@@ -155,10 +189,18 @@ pcb_PTR headProcQ (pcb_PTR tp){
   }
 }
 
+
+/*
+ *Return true if the pcb has no children, and false if there are children.
+ */
 int emptyChild(pcb_PTR p){
   return p->p_child == NULL;
 }
 
+
+/*
+ *Function: Make the pcb p a child of pcb parent.
+ */
 void insertChild(pcb_PTR parent, pcb_PTR p){
   /*parent has no kids :( */
   if(emptyChild(parent)){
@@ -175,6 +217,11 @@ void insertChild(pcb_PTR parent, pcb_PTR p){
   }
 }
 
+
+/*
+ *Function: Removes the first child from the parent. If there are no children,
+ *return NULL.
+ */
 pcb_PTR removeChild(pcb_PTR parent){
   /*no kids, so don't remove anything, just return null */
   if(emptyChild(parent)){
@@ -196,6 +243,11 @@ pcb_PTR removeChild(pcb_PTR parent){
   }
 }
 
+
+/*
+ *Function: Make the pcb p no longer a child of its parent. If p
+ *currently has no parent, return NULL.
+ */
 pcb_PTR outChild(pcb_PTR p){
   /* orphan child has no parents :( */
   if(p->p_parent == NULL){
