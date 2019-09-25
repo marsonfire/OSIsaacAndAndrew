@@ -12,6 +12,23 @@
 #define MAXINT 0xEFFFFFFF
 #endif
 
+/* creating syscall processor state areas */
+#define SYSCALLBREAKNEW 0x200003D4
+#define SYSCALLBREAKOLD 0x20000348
+
+/*creating program trap processor state areas */
+#define PROGRAMTRAPNEW 0x200002BC
+#define PROGRAMTRAPOLD 0x20000230
+
+/*creating the TLB management state areas */
+#define TLBMANAGEMENTNEW 0x200001A4
+#define TLBMANAGEMENTOLD 0x20000118
+
+/*creating the interrupt processor state areas */
+#define INTERRUPTNEW 0x2000008C
+#define INTERRUPTOLD 0x20000000
+
+
 /* Hardware & software constants */
 #define PAGESIZE		4096	/* page size in bytes */
 #define WORDLEN			4		/* word size in bytes */
