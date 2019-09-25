@@ -28,6 +28,21 @@
 #define INTERRUPTNEW 0x2000008C
 #define INTERRUPTOLD 0x20000000
 
+/* creating and defining status options */
+#define ALLOFF 0x00000000     /*turn everything off */
+/* not sure if actually needed or not 
+#define IECON 0x00000001	  /*turn external interrupts control to be set by Status.IM */
+/*#define KUC 0x00000002		  /* current kernal user mode */
+/*#define IEP  im not even sure what to put here tbh
+#define KUP
+/* end not sure if these are needed */
+ /* im just gonna ask what the hell we put in these on friday */
+#define 
+#define
+#define
+#define
+#define 
+
 
 /* Hardware & software constants */
 #define PAGESIZE		4096	/* page size in bytes */
