@@ -11,6 +11,7 @@
 #ifndef MAXINT
 #define MAXINT 0xEFFFFFFF
 #endif
+#define QUANTUM 5000     /* time for cpu job to run */
 
 /* creating syscall processor state areas */
 #define SYSCALLBREAKNEW 0x200003D4

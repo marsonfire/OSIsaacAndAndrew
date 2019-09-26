@@ -64,6 +64,8 @@ typedef struct pcb_t {
   struct pcb_t * p_prevSib;
   int *p_semAdd
   
+  struct state_t p_state;
+  
 } pcb_t, * pcb_PTR;
 
 /* semaphore descriptor type */
