@@ -27,7 +27,7 @@ main(){
   syscallNew->s_pc = (memaddr) interruptHandler; 
   syscallNew->s_t9 = (memaddr) interruptHandler;
   syscallNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
-  syscallNew->s_status = status registers from consts.c but Idk what that is
+  syscallNew->s_status = ALLOFF;
 
   /* set up and create new programTrap area in memory */
   /* set pc and t9 */
@@ -36,7 +36,7 @@ main(){
   programTrapNew->s_pc = (memaddr) interruptHandler;
   programTrapNew->s_t9 = (memaddr) interruptHandler;
   programTrapNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
-  programTrapNew->s_status = status registers from consts.c but Idk what that is
+  programTrapNew->s_status = ALLOFF;
 
   /* set up and create new tlbManagement area in memory */
   /* set pc and t9 */
@@ -45,7 +45,7 @@ main(){
   tlbManagementNew->s_pc = (memaddr) interruptHandler;
   tlbManagementNew->s_t9 = (memaddr) interruptHandler;
   tlbManagementNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
-  tlbManagementNew->s_status = status registers from consts.c but Idk what that is
+  tlbManagementNew->s_status = ALLOFF;
 
   /* set up and create new interrupt area in memory */
   /* set pc and t9 */
@@ -54,7 +54,7 @@ main(){
   interruptNew->s_pc = (memaddr) interruptHandler;
   interruptNew->s_t9 = (memaddr) interruptHandler;
   interruptNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
-  interruptNew->s_status = status registers from consts.c but Idk what that is  
+  interruptNew->s_status = ALLOFF;  
 
 
   /*init asl and pcb*/
