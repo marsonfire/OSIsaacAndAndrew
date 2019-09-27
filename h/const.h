@@ -63,6 +63,15 @@
 #define INTERVALTMR	0x10000020	
 #define TIMESCALEADDR	0x10000024
 
+/*Exception Calls - Phase 2*/
+#define CREATEPROC      1
+#define TERMINATEPROC   2
+#define VERHOGEN        3
+#define PASSERN         4
+#define SPECTRAPVEC     5
+#define GETCPUTIME      6
+#define WAITCLOCK       7
+#define WAITIO          8
 
 /* utility constants */
 #define	TRUE		1
