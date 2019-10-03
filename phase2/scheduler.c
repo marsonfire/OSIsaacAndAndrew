@@ -7,8 +7,8 @@
 #include "/usr/local/include/umps2/umps/libumps.e"
 
 /*global vars for time. see phase2 video 14 */
-cpu_t startTOD; 
-cpu_t stopTOD;
+cpu_t startTOD; /* time the process started at */ 
+cpu_t stopTOD;  /* time the process stopped at */
 /*initial.c's global varaibles */
 extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
@@ -17,6 +17,13 @@ extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representi
 
 void scheduler(){
 
+  /* before doig anything, let's save off the time the process took (if one was running) */
+  if(currentProcess != NULL){
+    STCK(stopTOD); /* time the process stopped */
+    currentProcess->p_time = currentProcess->p_time + (stopTOD - startTOD); /* time the process took */
+  }
+
+  /* if something is in currentP, we're going to have a new process running */
 	pcb_PTR currentP = removeProcQ(&readyQ);
 
 	/* we done */
@@ -25,7 +32,7 @@ void scheduler(){
 	}
 
 	if(currentP != NULL){
-		currentProcess = currentP; /*currentProcess = the global var in initial.c */
+		currentProcess = currentP; /*currentProcess = currentP we got off the queue */
 		STCK(startTOD); /* store the current time off */
 		/* load a timer with value of a quantum */
 		setTIMER(QUANTUM);
