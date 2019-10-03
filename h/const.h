@@ -32,18 +32,14 @@
 /* creating and defining status options */
 #define ALLOFF 0x00000000     /*turn everything off */ 
 #define IECON 0x00000001	  /*turn exernal interrupts current to be set by Status.IM */
-#define KERCON 0x00000002  	  /*turn kernal current on */
-#define KERCOFF 0xFFFFFFFD	  /*turn kernal current off */
 #define IEPON 0x00000004	  /*set interrupts previous on*/
 #define IEPOFF 0xFFFFFFFB	  /*set interrupts previous off */
 #define KERPON 0xFFFFFFF7	  /*set kernal previous mode on */
 #define KERPOFF 0x00000008	  /*set kernal previous mode off and now in user mode */	
 #define IMASKON 0x0000FF00	  /*turn interrupt mask on */
-#define IMASKOFF 0xFFFF00FF   /*turn interrupt mask off */
-#define VMCON 0x01000000	  /*turn virtual memory current on */
-#define VMCOFF 0xFEFFFFFF     /*turn virtual memory current off */
-#define VMPON 0xFDFFFFFF	  /*turn virtual memory previous on */
-#define VMPOFF 0x02000000	  /*turn virtual memory previous off*/
+#define IMASKOFF 0xFFFF00FF       /*turn interrupt mask off */
+#define VMPON 0x02000000	  /*turn virtual memory previous on */
+#define VMPOFF 0xFDFFFFFF	  /*turn virtual memory previous off*/
 #define TEON 0x08000000		  /*turn local timer on */
 #define TEOFF 0xF7FFFFFF	  /*turn local timer off */
 
