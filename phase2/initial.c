@@ -22,40 +22,39 @@ main(){
 
   /* set up and create new syscall area in memory */
   /* set pc and t9 */
-  /* set sp to RAMTOP and set status to whatever the hell it's supposed to be */
+  /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR syscallNew = (state_PTR) SYSCALLBREAKNEW;
-  syscallNew->s_pc = (memaddr) interruptHandler; 
-  syscallNew->s_t9 = (memaddr) interruptHandler;
+  syscallNew->s_pc = (memaddr) sysCallHandler; 
+  syscallNew->s_t9 = (memaddr) sysCallHandler;
   syscallNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   syscallNew->s_status = ALLOFF;
 
   /* set up and create new programTrap area in memory */
   /* set pc and t9 */
-  /* set sp to RAMTOP and set status to whatever the hell it's supposed to be */
+  /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR programTrapNew = (state_PTR) PROGRAMTRAPNEW;
-  programTrapNew->s_pc = (memaddr) interruptHandler;
-  programTrapNew->s_t9 = (memaddr) interruptHandler;
+  programTrapNew->s_pc = (memaddr) sysCallHandler;
+  programTrapNew->s_t9 = (memaddr) sysCallHandler;
   programTrapNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   programTrapNew->s_status = ALLOFF;
 
   /* set up and create new tlbManagement area in memory */
   /* set pc and t9 */
-  /* set sp to RAMTOP and set status to whatever the hell it's supposed to be */
+  /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR tlbManagementNew = (state_PTR) TLBMANAGEMENTNEW;
-  tlbManagementNew->s_pc = (memaddr) interruptHandler;
-  tlbManagementNew->s_t9 = (memaddr) interruptHandler;
+  tlbManagementNew->s_pc = (memaddr) sysCallHandler;
+  tlbManagementNew->s_t9 = (memaddr) sysCallHandler;
   tlbManagementNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   tlbManagementNew->s_status = ALLOFF;
 
   /* set up and create new interrupt area in memory */
   /* set pc and t9 */
-  /* set sp to RAMTOP and set status to whatever the hell it's supposed to be */
+  /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR interruptNew = (state_PTR) INTERRUPTNEW;
-  interruptNew->s_pc = (memaddr) interruptHandler;
-  interruptNew->s_t9 = (memaddr) interruptHandler;
+  interruptNew->s_pc = (memaddr) sysCallHandler;
+  interruptNew->s_t9 = (memaddr) sysCallHandler;
   interruptNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   interruptNew->s_status = ALLOFF;  
-
 
   /*init asl and pcb*/
   initASL();
@@ -73,7 +72,7 @@ main(){
   /*set PC to p2test*/
   /*utilize more magic, set status*/
 
-  /*incrememnt process, insert queue*/
+  /*incrememnt process, insert into queue*/
   processCount++;
   insertProcQ(&readyQ, p);
 
