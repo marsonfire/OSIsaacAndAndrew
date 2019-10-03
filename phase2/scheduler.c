@@ -3,11 +3,17 @@
 #include "../h/const.h"
 #include "../e/pcb.e"
 #include "../e/asl.e"
-#include "initial.c"
+#include "../e/initial.e"
+#include "/usr/local/include/umps2/umps/libumps.e"
 
 /*global vars for time. see phase2 video 14 */
 cpu_t startTOD; 
 cpu_t stopTOD;
+/*initial.c's global varaibles */
+extern int processCount;         /* number of processes in the system */
+extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
+extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
+extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 
 void scheduler(){
 
