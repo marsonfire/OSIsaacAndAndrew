@@ -65,6 +65,7 @@ typedef struct pcb_t {
   int *p_semAdd
   
   struct state_t p_state;
+  cpu_t p_time;
   
 } pcb_t, * pcb_PTR;
 
