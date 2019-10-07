@@ -7,7 +7,7 @@
 #include "../e/initial.e"
 #include "../e/interrupts.e"
 #include "../e/scheduler.e"
-#include "../e/p2.test.e"
+#include "../e/p2test.e"
 
 
 int processCount;         /* number of processes in the system */
