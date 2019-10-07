@@ -4,13 +4,16 @@
 #include "../e/pcb.e"
 #include "../e/initial.e"
 #include "../e/scheduler.e"
+#include "/usr/local/include/umps2/umps/libumps.e"
 
 /*global vars */
 extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-extern int semd[MAGICNUM]
+extern int semd[MAGICNUM]        /* our 49 devices */
+extern cpu_t startTOD; /* time the process started at */
+extern cpu_t stopTOD;  /* time the process stopped at */
 
 void sysCallHandler(){
      /*get what was in the old state */
@@ -132,19 +135,44 @@ void killEverything(pcb_PTR p){
   else{
     outProcQ(&(readyQ), p);
   }
-  
+  /* free up the space since we're not using it anymore and decrease process count by 1 too */
   freePcb(p);
   processCount--;
 }
 
 /*Perform operation on semaphore, set 3 in a0 - 3 syscall*/
 void sysCall3(state_PTR statep){
-  return NULL;
+  pcb_PTR temp = NULL;
+  /* save off the a1 register */
+  int* sem = (int*) statep->s_a1;
+  /*increment */
+  (*(sem))++;
+  if((*(sem)) <= 0 ){
+    /* unblock the process */
+    temp = removeBlocked(sem);
+    if(temp != NULL){
+      /* put the process in the ready queue to be executed */
+      insertProcQ(&(readyQ), temp);
+    }
+  }
+  LDST(statep);
 }
 
 /*Perform P operation on semaphore - 4 syscall*/
-void SYSCALL4(int *semaddr){
-  return NULL;
+void sysCall4(state_PTR statep){
+  /* save off the a1 register */
+  int* sem = (int*) statep->s_a1;
+  (*(sem))--;
+  if((*(sem)) < 0){
+    /* need to store off the time and see how long the process took */
+    STCK(stopTOD);
+    currentProcess->p_time = currentProcess->p_time + (stopTOD - startTOD);
+    /* something is using the resource at the same time, so this process is currently blocked and we'll need to call the scheduler and we'll think about it later */
+    copyState(statep, &(currentProcess->p_state));
+    insertBlocked(sem, currentProcess);
+    scheduler();
+  }
+  LDST(statep);
 }
 
 /*Specify vector and a bunch of other crap - 5 syscall*/

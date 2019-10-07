@@ -5,7 +5,6 @@
 
 extern sysCallHandler();
 extern void tlbManager();
-exterm void pgmTrap();
-
+extern void pgmTrap();
 
 #endif
