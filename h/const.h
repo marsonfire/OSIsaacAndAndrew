@@ -12,6 +12,7 @@
 #define MAXINT 0xEFFFFFFF
 #endif
 #define QUANTUM 5000     /* time for cpu job to run */
+#define MAGICNUM 49      /* magic num is the number of devices we have (49) */ 
 
 /* creating syscall processor state areas */
 #define SYSCALLBREAKNEW 0x200003D4

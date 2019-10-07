@@ -10,6 +10,7 @@ int processCount;         /* number of processes in the system */
 int softBlockCount;       /* number of processes blocked and waiting for an interrupt */    
 pcb_PTR currentProcess;   /* self explanatory... I hope... */
 pcb_PTR readyQ;         /* tail pointer to queue of procblks representing processes ready and waiting for execution */
+int semD[MAGICNUM];     /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
 
 main(){
 
