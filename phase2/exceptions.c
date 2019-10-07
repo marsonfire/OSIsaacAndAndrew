@@ -30,8 +30,16 @@ void sysCallHandler(){
       }
       /* if we're in this, we're in user mode trying to make a request here */
       else if((request >= 1 && request <= 8) && (status & KERPOFF) != ALLOFF) {
-	/* we need to do a priveledged pgm trap or something, see end of vid 5 */
-	/* some more in the beginning of vid 7 */
+	/* beginning of vid 7 is good for this */
+	/* copy state from oldSys over to oldProgram, but need to get oldProgram's state first */
+	state_PTR temp = (state_PTR) PROGRAMTRAPOLD;
+	copyState(oldState, temp);
+	/* set the cause register to be reserved instruction exception (which is 10) (00...0100100 = 0x00000028)  */
+	/* set the cause to be reserved instruction, must reset it first */
+	temp->s_cause = temp->s_cause & 0x00000000;
+	temp->s_cause = temp->s_cause | 0x00000028;
+	/* call program trap handler */
+	programTrapHandler();
       }
       /* we're in kernal mode and need to do some syscall */
       else{
@@ -140,7 +148,8 @@ void killEverything(pcb_PTR p){
   processCount--;
 }
 
-/*Perform operation on semaphore, set 3 in a0 - 3 syscall*/
+/*Perform V operation on semaphore, set 3 in a0 - 3 syscall*/
+/* this is the signal operation */
 void sysCall3(state_PTR statep){
   pcb_PTR temp = NULL;
   /* save off the a1 register */
@@ -159,6 +168,7 @@ void sysCall3(state_PTR statep){
 }
 
 /*Perform P operation on semaphore - 4 syscall*/
+/* this is the Wait operation */
 void sysCall4(state_PTR statep){
   /* save off the a1 register */
   int* sem = (int*) statep->s_a1;
@@ -205,4 +215,46 @@ void copyState(state_PTR original, state_PTR dest){
   for(i = 0; i < STATEREGNUM; i++){
     dest->s_reg[i]=original->s_reg[i];
   }
+}
+
+void passUpOrDie(state_PTR statep, int trapCode){
+  /* need to check the code that was passed along in order to make sure we handle this correclty
+ -- TLBTRAP = 0, PROGTRAP = 1, SYSTRAP = 2 --> defined in const.h already for us to use */
+  /* in each the new state must != NULL, and we need to copy the state 
+over from the given statep, to the currentProcess' old state and then load the 
+new state */
+  /*vid 8 (and class) */
+  switch(trapCode){
+  case TLBTRAP:
+    /* do tlb trap thing */
+    if(currentProcess->tlbNew != NULL){
+      copyState(statep, currentProcess->oldTlb);
+      LDST(currentProcess->newTlb);
+    }
+    else{
+      sysCall2();
+    }
+    break;
+  case PROGTRAP:
+    /* do progtrap thing */
+    if(currentProcess->newPgm != NULL){ 
+      copyState(statep, currentProcess->oldPgm);
+      LDST(currentProcess->newPgm);
+    }
+    else{
+      sysCall2();
+    }
+    break;
+  case SYSTRAP:
+    /* do syscalltrap thing*/
+    if(currentProcess->newSys != NULL){
+      copyState(statep, currentProcess->oldSys);
+      LDST(currentProcess->newSys);
+    }
+    else{
+      sysCall2();
+    }
+    break;
+  }
+  /* don't like repetitive code, but only want to kill processes when we want to, and not accidentally... */
 }

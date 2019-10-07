@@ -66,6 +66,14 @@ typedef struct pcb_t {
   
   struct state_t p_state;
   cpu_t p_time;
+
+  /* old and new sys states */
+  state_PTR oldSys;
+  state_PTR oldPgm;
+  state_PTR oldTlb;
+  state_PTR newSys;
+  state_PTR newPgm;
+  state_PTR newTlb;
   
 } pcb_t, * pcb_PTR;
 
