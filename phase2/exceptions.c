@@ -26,7 +26,7 @@ void sysCallHandler(){
       unsigned int request = oldState->s_a0;
 
       if(request > 8){
-	/*pass up or die */
+	passUpOrDie();
       }
       /* if we're in this, we're in user mode trying to make a request here */
       else if((request >= 1 && request <= 8) && (status & KERPOFF) != ALLOFF) {
@@ -44,32 +44,33 @@ void sysCallHandler(){
       /* we're in kernal mode and need to do some syscall */
       else{
 	switch(request){
-	case 1:
+	case CREATEPROC:
 	  sysCall1(oldState);
 	  break;
-	case 2:
+	case TERMINATEPROC:
 	  sysCall2();
 	  break;
-	case 3:
+	case VERHOGEN:
 	  sysCall3(oldState);
 	  break;
-	case 4:
-	  SYSCALL4(beingUsed);
+	case PASSERN:
+	  sysCall4(oldState);
 	  break;
-	case 5:
-	  SYSCALL5(beingUsed);
+	case SPECTRAPVEC:
+	  sysCall5(oldState);
 	  break;
-	case 6:
-	  SYSCALL6(beingUsed);
+	case GETCPUTIME:
+	  sysCall6(oldState);
 	  break;
-	case 7:
-	  SYSCALL7(beingUsed);
+	case WAITCLOCK:
+	  sysCall7(oldState);
 	  break;
-	case 8:
-	  SYSCALL8(beingUsed);
+	case WAITIO:
+	  sysCall8(oldState);
 	  break;
 	default:
-	  /* pass up or die */
+	  /*don't think this will ever actually happen */
+	  passUpOrDie(oldState, SYSTRAP);
 	}
       }
   }
@@ -116,9 +117,9 @@ void sysCall2(){
   scheduler();
 }
 
-/* MANIACAL LAUGHTER  */
+/* Check through our current process  and recursively kill its children processes and all things associated with it in the semaphore lists and ready queue. */  
 void killEverything(pcb_PTR p){
-  /* MURDER AND KILL THE CHILDREN, KILL AND MURDER THE CHILDREN */
+  /* MANIACAL LAUGHTER */
   while(!emptyChild(p)){
     killEverything(removeChild(p));
   }
@@ -186,23 +187,102 @@ void sysCall4(state_PTR statep){
 }
 
 /*Specify vector and a bunch of other crap - 5 syscall*/
-void SYSCALL5(int type, state_t *oldp, state_t *newp){
-  return NULL;
+void sysCall5(state_PTR statep){
+  /*get exception stored in a1 register */
+  switch(statep->s_a1){
+    /* for each case, check if trap new area is null in the current process. If it isn't kill it. Then set the values of the the old and new area to be the addresses of the exceptions, which is passed in the a2 (old state) and a3 (new state) register */
+    case TLBTRAP:
+      if(currentProcess->newTlb != NULL){
+	sysCall2();
+      }
+      currentProcess->oldTlb = (state_PTR)statep->s_a2;
+      currentProcess->newTlb = (state_PTR)statep->s_a3;
+      break;
+    case PROGTRAP:
+      if(currentProcess->newPgm != NULL){
+	sysCall2();
+      }
+      currentProcess->oldPgm = (state_PTR)statep->s_a2;
+      currentProcess->newPgm = (state_PTR)statep->s_a3;
+      break;
+    case SYSTRAP:
+      if(currentProcess->newSys != NULL){
+	sysCall2();
+      }
+      currentProcess->oldSys = (state_PTR)statep->s_a2;
+      currentProcess->newSys = (state_PTR)statep->s_a3;
+      break;
+  }
+  LDST(statep);
 }
 
 /*Gets the time, - 6 syscall*/
-cpu_t SYSCALL6(){
-  return NULL;
+void sysCall6(state_PTR statep){
+  /* get the current time into var time */
+  cpu_t time;
+  STCK(time);
+  /* set the process' time */
+  currentProcess->p_time = (currentProcess->p_time) + (time - startTOD);
+  /* store the time the process took into the state's v0 */
+  statep->s_v0 = currentProcess->p_time;
+  /* update the start time */
+  STCK(startTOD);
+  LDST(statep);
 }
 
 /*Hold the clock - 7 syscall*/
-void SYSCALL7(){
-  return NULL;
+void sysCall7(state_PTR statep){
+  /* get the interval timer (last in the list of semaphores) */
+  /* basically, do a sys4 call but with different values for the interval timer */
+  int * sem = (int*) &(semd[MAGICNUM-1]);
+  (*sem)--;
+  if((*sem) < 0){
+    insertBlocked(sem, currentProcess);
+    /* copy over old statep into the currentProcess' state */
+    copyState(statep, &(currentProcess->p_state));
+    /* now this process will be soft blocked */
+    softBlockCount++;
+  }
+  scheduler();
 }
 
 /*Hold an IO? - 8 syscall*/
-unsigned int SYSCALL8(int intlNo, int dnum, int waitRead){
-  retunr NULL;
+void sysCall8(state_PTR statep){
+  /* get line number, device number, and terminal read operation from a registers*/
+  int lineNum = state->s_a1;
+  int deviceNum = state->s_a2;
+  int termainlReadOp = state->s_a3;
+  /* we want lineNum values between 3 an 7, so kill off anything else */
+  if(lineNum < DISKINT || lineNum > TERMINT){
+    sysCall2();
+  }
+  /* calculating which device it is */
+  int semDeviceIndex;
+  /* check if it's a terminal read first */
+  if(linNum == TERMINT && terminalReadOp == TRUE){
+    /* line we're at, - 3 (cuz we start at device 3), + terminalReadOp */
+    semDeviceIndex = lineNum - 3 + terminalReadOp;
+  }
+  else{
+    /* line we're at - 3, and terminalOp is 0, so don't add it */
+    semDeviceIndex = lineNumber - 3;
+  }
+  /* we have 8 of each of the devices... so we need to do:
+     (8 * semDeviceIndex) + deviceNum to find the right one */
+  semDeviceIndex = (8 * semDeviceIndex) + deviceNum;
+  /* basically does a sysCall 4 with these values on this device now... similar to how it was done with the interval timer in syscall 7 */
+  int * semDevice = &(semd[semDeviceIndex]);
+  (*semDevice)--;
+  if((*semDevice) < 0){
+    insertBlocked(semDevice, currentProcess);
+    /* copy over statep into the currentProcess' state */
+    copyState(statep, &(currentProcess->p_state));
+    /* process is blocked so increase softBlockCount */
+    softBlockCount++;
+    /* call the scheduler */
+    scheduler();
+  }
+  LDST(statep);
 }
 
 /* fairly simple, we just set the registers and the state to what we want it to be */
@@ -257,4 +337,14 @@ new state */
     break;
   }
   /* don't like repetitive code, but only want to kill processes when we want to, and not accidentally... */
+}
+
+void pgmTrapHandler(){
+  /* get the old program trap area and send it along to pass up or die */
+  passUpOrDie((state_PTR)PROGRAMTRAPOLD), PROGTRAP);
+}
+
+void tlbManagementHandler(){
+  /*get the old tlb management area and sent it along to pass up or die */
+  passUpOrDie((state_PTR)TLBMANAGEMENTOLD), TLBTRAP);
 }

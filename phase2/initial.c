@@ -35,8 +35,8 @@ main(){
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR programTrapNew = (state_PTR) PROGRAMTRAPNEW;
-  programTrapNew->s_pc = (memaddr) sysCallHandler;
-  programTrapNew->s_t9 = (memaddr) sysCallHandler;
+  programTrapNew->s_pc = (memaddr) pgmTrapHandler;
+  programTrapNew->s_t9 = (memaddr) pgmTrapHandler;
   programTrapNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   programTrapNew->s_status = ALLOFF;
 
@@ -44,8 +44,8 @@ main(){
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR tlbManagementNew = (state_PTR) TLBMANAGEMENTNEW;
-  tlbManagementNew->s_pc = (memaddr) sysCallHandler;
-  tlbManagementNew->s_t9 = (memaddr) sysCallHandler;
+  tlbManagementNew->s_pc = (memaddr) tlbManagementHandler;
+  tlbManagementNew->s_t9 = (memaddr) tlbManagementHandler;
   tlbManagementNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   tlbManagementNew->s_status = ALLOFF;
 
@@ -66,7 +66,7 @@ main(){
   processCount = 0;
   softBlockCount = 0;
   curentProcess = NULL;
-  readyQ = NULL;
+  readyQ = mkEmptyProcQ();
 
   /* need to initalize and set each device to 0 */
   int i;
