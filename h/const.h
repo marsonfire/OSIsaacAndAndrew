@@ -45,6 +45,16 @@
 #define TEON 0x08000000		  /*turn local timer on */
 #define TEOFF 0xF7FFFFFF	  /*turn local timer off */
 
+/* device line number addresses */
+#define FIRST 0x00000001
+#define SECOND 0x00000002
+#define THIRD 0x00000004
+#define FOURTH 0x00000008
+#define FIFTH 0x00000010
+#define SIXTH 0x00000020
+#define SEVENTH 0x00000040
+#define EIGHT 0x00000080
+
 
 /* Hardware & software constants */
 #define PAGESIZE		4096	/* page size in bytes */
