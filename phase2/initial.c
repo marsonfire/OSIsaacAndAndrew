@@ -11,14 +11,14 @@
 
 
 int processCount;         /* number of processes in the system */
-int softBlockCount;       /* number of processes blocked and waiting for an interrupt */    
+int softBlockCount;    /* number of processes blocked and waiting for an interrupt */    
 pcb_PTR currentProcess;   /* self explanatory... I hope... */
 pcb_PTR readyQ;         /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 int semd[MAGICNUM];     /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
 
 main(){
 
-  devregarea_t * ramBaseAddress = (devregarea_t) RAMBASEADDR; /* He calls this RAMTOP in the video but it's the same address (0x1000000)*/
+  devregarea_t * ramBaseAddress = (devregarea_t *) RAMBASEADDR; /* He calls this RAMTOP in the video but it's the same address (0x1000000)*/
 
   /*set the new areas that are in constants */
   
@@ -34,7 +34,8 @@ main(){
   /* set up and create new programTrap area in memory */
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
-  state_PTR programTrapNew = (state_PTR) PROGRAMTRAPNEW;
+  state_PTR programTrapNew;
+  programTrapNew = (state_PTR) PROGRAMTRAPNEW;
   programTrapNew->s_pc = (memaddr) pgmTrapHandler;
   programTrapNew->s_t9 = (memaddr) pgmTrapHandler;
   programTrapNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
@@ -65,7 +66,7 @@ main(){
   /*global variables*/
   processCount = 0;
   softBlockCount = 0;
-  curentProcess = NULL;
+  currentProcess = NULL;
   readyQ = mkEmptyProcQ();
 
   /* need to initalize and set each device to 0 */
@@ -75,6 +76,7 @@ main(){
   }
 
   /*get a pcb*/
+  pcb_PTR p;
   p = allocPcb();
   /*incrememnt process, since we just created it*/
   processCount++;
