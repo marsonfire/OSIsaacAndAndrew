@@ -34,8 +34,7 @@ main(){
   /* set up and create new programTrap area in memory */
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
-  state_PTR programTrapNew;
-  programTrapNew = (state_PTR) PROGRAMTRAPNEW;
+  state_PTR programTrapNew = (state_PTR) PROGRAMTRAPNEW;
   programTrapNew->s_pc = (memaddr) pgmTrapHandler;
   programTrapNew->s_t9 = (memaddr) pgmTrapHandler;
   programTrapNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
@@ -87,11 +86,13 @@ main(){
   currentProcess ->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
   /*insert into the readyQueue */
   insertProcQ(&readyQ, p);
-  currentProcess = NULL;
   /* start hte interval timer */
   LDIT(INTERVALTIMER);
   /*start up scheduler*/
   scheduler();
 
+  /*We ain't in Kansas no more*/
+  PANIC();
   return -1;
 }
+
