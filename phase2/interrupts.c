@@ -16,7 +16,7 @@ extern int semd[MAGICNUM]        /* our 49 devices */
 extern cpu_t startTOD;           /* time the process started at */
 extern cpu_t stopTOD;            /* time the process stopped at */
 
-extern void copyState(state_PTR original, state_PTR dest){
+extern void copyState(state_PTR original, state_PTR dest);
 
 void interruptHandler(){
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
@@ -25,7 +25,7 @@ void interruptHandler(){
   int deviceNum, lineNum = 0;
   int* sem;
   /* figure out which interrupt line the interrupt is on */ 
-  unsigned int interruptCause = (oldInterruptArea->s_cause & IMASKON) >> 8;
+  unsigned int cause = (oldInterruptArea->s_cause & IMASKON) >> 8;
   /* start clock */
   STCK(startTime);
   /* this shouldn't ever happen */
@@ -166,7 +166,7 @@ to terminal -  bottom page 46 of princ of ops has codes */
 
 void done(cpu_t startTime){
   cpu_t endTime;
-  state_PTR oldInterruptArea = (memaddr)INTERRUPTOLD;
+  state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
   if(currentProcess != NULL){
     /* start the clockand figure out the start time of the process */
     STCK(endTime);
@@ -207,7 +207,3 @@ int getDevice(unsigned int * bitMap){
     return 7;
   }
 }
- 
-}
-
- 
