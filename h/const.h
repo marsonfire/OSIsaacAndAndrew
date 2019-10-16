@@ -109,6 +109,11 @@
 #define PRNTINT 	6
 #define TERMINT		7
 
+/* interrupting devices bitmap address */
+#define INTDEVBITMAP 0x1000003C
+/* address where device registers start */
+#define INTDEVREG 0x10000050
+
 #define DEVREGLEN	4	/* device register field length in bytes & regs per dev */
 #define DEVREGSIZE	16 	/* device register size in bytes */
 

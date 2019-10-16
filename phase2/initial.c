@@ -53,8 +53,8 @@ main(){
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
   state_PTR interruptNew = (state_PTR) INTERRUPTNEW;
-  interruptNew->s_pc = (memaddr) sysCallHandler;
-  interruptNew->s_t9 = (memaddr) sysCallHandler;
+  interruptNew->s_pc = (memaddr) interruptHandler;
+  interruptNew->s_t9 = (memaddr) interruptHandler;
   interruptNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
   interruptNew->s_status = ALLOFF;  
 
@@ -90,9 +90,7 @@ main(){
   LDIT(INTERVALTIMER);
   /*start up scheduler*/
   scheduler();
-
-  /*We ain't in Kansas no more*/
-  PANIC();
+  
   return -1;
 }
 

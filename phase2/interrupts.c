@@ -82,10 +82,21 @@ void interruptHandler(){
   }
   
   /*sets up for the terminal*/
-  else if((cause $ EIGHTH)!= 0){
+  else if((cause & EIGHTH)!= 0){
     lineNum = TERMINT;
   }
+
+  /* lineNum has the lineNum set from above. Must subtract 3 because we have the first 3 devices without 8 semaphores and then multiply by the WordLen (4). However, we still need to get to the address of the registers' so we add Interrupting Devices Bitmap address to it so we're in the right memory area. */
+  unsigned int* findDeviceLineNum = ((lineNum - 3) * WORDLEN) + INTDEVBITMAP;
+  /* get the device number */
+  deviceNum = getDevice(findDeviceLinNum);
+  /* get the device register now */
+  /* get the */
+  device = (device_t)* INTDEVREG 
+  
 }
+
+/* helper functions */
 
 void done(cpu_t startTime){
   cpu_t endTime;
@@ -104,7 +115,7 @@ void done(cpu_t startTime){
 
 /*identifies the device that an interrupt is happening at*/
 /*bitMap may need to be changed to unsigned*/
-HIDDEN int getDevice(int bitMap){
+int getDevice(unsigned int * bitMap){
   if(bitMap == FIRST){
     return 0;
   }
