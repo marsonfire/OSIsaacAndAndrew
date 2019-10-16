@@ -11,7 +11,7 @@ extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-extern int semd[MAGICNUM]        /* our 49 devices */
+extern int semd[MAGICNUM];       /* our 49 devices */
 extern cpu_t startTOD; /* time the process started at */
 extern cpu_t stopTOD;  /* time the process stopped at */
 
@@ -19,9 +19,9 @@ void sysCallHandler(){
      /*get what was in the old state */
     state_PTR oldState = (state_PTR)SYSCALLBREAKOLD;
     /* increment pc by 1 */
-      oldState->s_pc = oldState->s_pc + 4
+    oldState->s_pc = oldState->s_pc + 4;
 	/* status of the state */
-	unsigned int status = oldState->s_status;
+      unsigned int status = oldState->s_status;
       /*the syscall request that was made */
       unsigned int request = oldState->s_a0;
 
@@ -39,7 +39,7 @@ void sysCallHandler(){
 	temp->s_cause = temp->s_cause & 0x00000000;
 	temp->s_cause = temp->s_cause | 0x00000028;
 	/* call program trap handler */
-	programTrapHandler();
+	pgmTrapHandler();
       }
       /* we're in kernal mode and need to do some syscall */
       else{
@@ -82,7 +82,7 @@ int sysCall1(state_PTR statep){
   pcb_PTR temp = allocPcb();
   /*check for null, set v0 to -1 if so*/
   if(temp == NULL){
-    temp->s_v0 = -1;
+    statep->s_v0 = -1;
   }
   else{
     /*increment since we're gonna add one */
@@ -249,9 +249,9 @@ void sysCall7(state_PTR statep){
 /*Hold an IO? - 8 syscall*/
 void sysCall8(state_PTR statep){
   /* get line number, device number, and terminal read operation from a registers*/
-  int lineNum = state->s_a1;
-  int deviceNum = state->s_a2;
-  int termainlReadOp = state->s_a3;
+  int lineNum = statep->s_a1;
+  int deviceNum = statep->s_a2;
+  int terminalReadOp = statep->s_a3;
   /* we want lineNum values between 3 an 7, so kill off anything else */
   if(lineNum < DISKINT || lineNum > TERMINT){
     sysCall2();
@@ -259,13 +259,13 @@ void sysCall8(state_PTR statep){
   /* calculating which device it is */
   int semDeviceIndex;
   /* check if it's a terminal read first */
-  if(linNum == TERMINT && terminalReadOp == TRUE){
+  if(lineNum == TERMINT && terminalReadOp == TRUE){
     /* line we're at, - 3 (cuz we start at device 3), + terminalReadOp */
     semDeviceIndex = lineNum - 3 + terminalReadOp;
   }
   else{
     /* line we're at - 3, and terminalOp is 0, so don't add it */
-    semDeviceIndex = lineNumber - 3;
+    semDeviceIndex = lineNum - 3;
   }
   /* we have 8 of each of the devices... so we need to do:
      (8 * semDeviceIndex) + deviceNum to find the right one */
@@ -307,7 +307,7 @@ new state */
   switch(trapCode){
   case TLBTRAP:
     /* do tlb trap thing */
-    if(currentProcess->tlbNew != NULL){
+    if(currentProcess->newTlb != NULL){
       copyState(statep, currentProcess->oldTlb);
       LDST(currentProcess->newTlb);
     }
@@ -341,10 +341,10 @@ new state */
 
 void pgmTrapHandler(){
   /* get the old program trap area and send it along to pass up or die */
-  passUpOrDie((state_PTR)PROGRAMTRAPOLD), PROGTRAP);
+  passUpOrDie((state_PTR)PROGRAMTRAPOLD, PROGTRAP);
 }
 
 void tlbManagementHandler(){
   /*get the old tlb management area and sent it along to pass up or die */
-  passUpOrDie((state_PTR)TLBMANAGEMENTOLD), TLBTRAP);
+  passUpOrDie((state_PTR)TLBMANAGEMENTOLD, TLBTRAP);
 }

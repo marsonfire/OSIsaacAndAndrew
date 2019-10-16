@@ -5,8 +5,6 @@
 #include "../e/asl.e"
 #include "../e/initial.e"
 #include "../e/exceptions.e"
-#include "../e/scheduler.e"
-#include "../e/interrupts.e"
 #include "/usr/local/include/umps2/umps/libumps.e"
 
 /*global vars for time. see phase2 video 14 */
@@ -34,7 +32,7 @@ void scheduler() {
 		HALT();
 	}
 
-	if(currentP != NULL){
+	if(!emptyProcQ(readyQ)){
 		currentProcess = currentP; /*currentProcess = currentP we got off the queue */
 		STCK(startTOD); /* store the current time off */
 		/* load a timer with value of a quantum */
