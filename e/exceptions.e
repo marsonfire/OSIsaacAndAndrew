@@ -1,8 +1,5 @@
-/* exceptions.e */
-
 #ifndef exceptions
 #define exceptions
-
 
 extern void sysCallHandler();
 extern void pgmTrapHandler();

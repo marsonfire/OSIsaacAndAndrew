@@ -4,6 +4,9 @@
 #include "../e/pcb.e"
 #include "../e/asl.e"
 #include "../e/initial.e"
+#include "../e/exceptions.e"
+#include "../e/scheduler.e"
+#include "../e/interrupts.e"
 #include "/usr/local/include/umps2/umps/libumps.e"
 
 /*global vars for time. see phase2 video 14 */
@@ -15,7 +18,7 @@ extern int softBlockCount;       /* number of processes blocked and waiting for 
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 
-void scheduler(){
+void scheduler() {
 
   /* before doig anything, let's save off the time the process took (if one was running) */
   if(currentProcess != NULL){

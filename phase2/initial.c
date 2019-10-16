@@ -3,12 +3,11 @@
 #include "../h/const.h"
 #include "../e/pcb.e"
 #include "../e/asl.e"
+#include "../e/scheduler.e"
 #include "../e/exceptions.e"
 #include "../e/initial.e"
 #include "../e/interrupts.e"
-#include "../e/scheduler.e"
 #include "../e/p2test.e"
-#include "/usr/local/include/umps2/umps2/libumps.e"
 
 int processCount;         /* number of processes in the system */
 int softBlockCount;    /* number of processes blocked and waiting for an interrupt */    
@@ -91,6 +90,6 @@ void main(){
   LDIT(INTERVALTIMER);
   /*start up scheduler*/
   scheduler();
-  
+
   return -1;
 }

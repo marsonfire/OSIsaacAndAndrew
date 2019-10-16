@@ -1,7 +1,3 @@
-/* scheduler.e */
-
-#include "../h/types.h"
-
 #ifndef scheduler
 #define scheduler
 
