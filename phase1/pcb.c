@@ -7,14 +7,6 @@ HIDDEN pcb_PTR pcbFree_h;
 
 /*pcb.e is basically an interface to go off of */
 
-/*
- *Function: That which checks life, which points out the
- *folly of man.
- */
-void debugA(int a){
-  int i;
-  i = 0;
-}
 
 /*
  *Function: Takes in a pcb p and inserts p into 
@@ -84,6 +76,7 @@ int emptyProcQ (pcb_PTR tp){
  *2. There is a queue. Insert the pcb as the new tail pointer.
  */
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
+  pcb_PTR temp;
   /*we have an empty queue, so create a new one*/
   if(emptyProcQ(*tp)){
 	  p->p_next = p;  /*p's next points to itself*/
@@ -92,7 +85,7 @@ void insertProcQ (pcb_PTR *tp, pcb_PTR p){
 	}
 	/*if here, we don't have an empty queue*/
 	else{;
-	  pcb_PTR temp = *tp;	  /*save the tail pointer in a temp var to be used later*/
+	  temp = *tp;	  /*save the tail pointer in a temp var to be used later*/
 	  *tp = p;	/*make the tail pointer point to our new node since it's going to the end*/
 	  p->p_next = temp->p_next;/*make p's next point to the head, which is what temp's (the previous tail) next was*/
 	  temp->p_next = p;			/*temp is now 2nd to last and p is last so set it's p_next*/
@@ -138,50 +131,42 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
  *3. Multiple elements in queue. Search for the target, and either return
  *the target or null if not found
  */
-pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
-  if(emptyProcQ(*tp)){
+pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
+  pcb_PTR ret, temp;
+  if(((*tp) == NULL) || (p == NULL)) {
     return NULL;
   }
-  /*only one element in the queue*/
-  else if((*tp)->p_next ==(*tp)){
-    pcb_PTR head = (*tp);
-    /* the one element in the queue is what we're looking for*/
-    if(head == p){
-      return removeProcQ((*tp));
+  /* only one thing in queue and it is what we want */
+  if((*tp) == p){
+    
+    if ((((*tp) -> p_next) == (*tp))) {
+      ret = (*tp);
+      (*tp) = mkEmptyProcQ();
+      return ret;
+    } else {
+      (*tp)->p_prev->p_next = (*tp)->p_next;
+      (*tp)->p_next->p_prev = (*tp)->p_prev;
+      *tp = (*tp)->p_prev;
     }
-    /* that one element wasn't the one we're looking for, so return null */ 
-    else {
-      return NULL;
+    return p;
+  } else {
+  /* node is somewhere else, start at p_next */
+  temp = (*tp) -> p_next;
+  while(temp != (*tp)) {
+    /* found node ? */
+    if(temp == p){
+      /* unleave node and return it */
+      ret = temp;
+      ret -> p_prev -> p_next = ret -> p_next;
+      ret -> p_next -> p_prev = ret -> p_prev;
+      ret -> p_next = NULL;
+      ret -> p_prev = NULL;
+      return ret;
     }
-  }
-  /*more than one element in the queue */
-  else{
-    pcb_PTR pcbLookingAt = (*tp)->p_next; /*the head*/
-    /* the head is the element that we're looking for, so just remove it like normal*/
-    if(pcbLookingAt == p){
-      return removeProcQ(tp);
+      temp = temp -> p_next;
     }
-    /* the one we're looking for is the tail */
-    else if((*tp) == p){
-      pcb_PTR temp = (*tp);
-      (*tp)->p_prev->p_next = (*tp)->p_next;       /*the new tail's next is set to the head */
-      (*tp)->p_next->p_prev = (*tp)->p_prev;       /*the head's previous is set to tail's previous */
-      (*tp) = (*tp)->p_prev;                         /*the new tail is set as the new tail (old tail's previous */
-      return temp;
-    }
-    /* remove something from the middle */
-    else{
-      pcbLookingAt = (*tp)->p_next->p_next;       /*already checked for the head, so look at the second element */
-      while(pcbLookingAt != (*tp)){
-  if(pcbLookingAt  == p){
-    pcbLookingAt->p_prev->p_next = pcbLookingAt->p_next;         /*set the previous element's next to the one ahead of the one we're looking at */
-    pcbLookingAt->p_next->p_prev = pcbLookingAt->p_prev;         /*set the next element's prevoius to the one behind the one we're looking at */
-    return pcbLookingAt;
-  }
-  pcbLookingAt = pcbLookingAt->p_next;
-      }
-      return NULL;
-    }
+    /* node not in list here */
+    return NULL;
   }
 }
 

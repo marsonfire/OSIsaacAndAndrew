@@ -15,70 +15,95 @@ extern int semd[MAGICNUM];       /* our 49 devices */
 extern cpu_t startTOD; /* time the process started at */
 extern cpu_t stopTOD;  /* time the process stopped at */
 
+HIDDEN void sysCall1(state_PTR statep);
+HIDDEN void sysCall2();
+HIDDEN void killEverything(pcb_PTR p);
+HIDDEN void sysCall3(state_PTR statep);
+HIDDEN void sysCall4(state_PTR statep);
+HIDDEN void sysCall5(state_PTR statep);
+HIDDEN void sysCall6(state_PTR statep);
+HIDDEN void sysCall7(state_PTR statep);
+HIDDEN void sysCall8(state_PTR statep);
+HIDDEN void passUpOrDie(state_PTR statep, int trapCode);
+
+
+void copyState(state_PTR original, state_PTR dest);
+void pgmTrapHandler();
+void tlbManagementHandler();
+
+void debugA(int a){
+  int i;
+  i = 0;
+}
+
 void sysCallHandler(){
-     /*get what was in the old state */
-    state_PTR oldState = (state_PTR)SYSCALLBREAKOLD;
+    debugA(100);
+
+    state_PTR oldState;
+    unsigned int status;
+    unsigned int request;
+    /*get what was in the old state */
+    oldState = (state_PTR)SYSCALLBREAKOLD;
     /* increment pc by 1 */
     oldState->s_pc = oldState->s_pc + 4;
-	/* status of the state */
-      unsigned int status = oldState->s_status;
-      /*the syscall request that was made */
-      unsigned int request = oldState->s_a0;
+    /* status of the state */
+    status = oldState->s_status;
+    /*the syscall request that was made */
+    request = oldState->s_a0;
 
-      if(request > 8){
-	passUpOrDie();
+    if(request > 8){
+      passUpOrDie(oldState, SYSTRAP);
+    }
+    /* if we're in this, we're in user mode trying to make a request here */
+    else if((request >= 1 && request <= 8) && (status & KERPOFF) != ALLOFF) {
+    /* copy state from oldSys over to oldProgram, but need to get oldProgram's state first */
+      state_PTR temp = (state_PTR) PROGRAMTRAPOLD;
+      copyState(oldState, temp);
+      /* set the cause register to be reserved instruction exception (which is 10) (00...0100100 = 0x00000028)  */
+      /* set the cause to be reserved instruction, must reset it first */
+      temp->s_cause = temp->s_cause & 0x00000000;
+      temp->s_cause = temp->s_cause | 0x00000028;
+      /* call program trap handler */
+      pgmTrapHandler();
+    }
+    /* we're in kernal mode and need to do some syscall */
+    else{
+      switch(request){
+        case CREATEPROC:
+          sysCall1(oldState);
+          break;
+      	case TERMINATEPROC:
+      	  sysCall2();
+      	  break;
+      	case VERHOGEN:
+      	  sysCall3(oldState);
+      	  break;
+      	case PASSERN:
+      	  sysCall4(oldState);
+      	  break;
+      	case SPECTRAPVEC:
+      	  sysCall5(oldState);
+      	  break;
+      	case GETCPUTIME:
+      	  sysCall6(oldState);
+      	  break;
+      	case WAITCLOCK:
+      	  sysCall7(oldState);
+      	  break;
+      	case WAITIO:
+      	  sysCall8(oldState);
+      	  break;
+      	default:
+          /*don't think this will ever actually happen */
+        passUpOrDie(oldState, SYSTRAP);
       }
-      /* if we're in this, we're in user mode trying to make a request here */
-      else if((request >= 1 && request <= 8) && (status & KERPOFF) != ALLOFF) {
-	/* beginning of vid 7 is good for this */
-	/* copy state from oldSys over to oldProgram, but need to get oldProgram's state first */
-	state_PTR temp = (state_PTR) PROGRAMTRAPOLD;
-	copyState(oldState, temp);
-	/* set the cause register to be reserved instruction exception (which is 10) (00...0100100 = 0x00000028)  */
-	/* set the cause to be reserved instruction, must reset it first */
-	temp->s_cause = temp->s_cause & 0x00000000;
-	temp->s_cause = temp->s_cause | 0x00000028;
-	/* call program trap handler */
-	pgmTrapHandler();
-      }
-      /* we're in kernal mode and need to do some syscall */
-      else{
-	switch(request){
-	case CREATEPROC:
-	  sysCall1(oldState);
-	  break;
-	case TERMINATEPROC:
-	  sysCall2();
-	  break;
-	case VERHOGEN:
-	  sysCall3(oldState);
-	  break;
-	case PASSERN:
-	  sysCall4(oldState);
-	  break;
-	case SPECTRAPVEC:
-	  sysCall5(oldState);
-	  break;
-	case GETCPUTIME:
-	  sysCall6(oldState);
-	  break;
-	case WAITCLOCK:
-	  sysCall7(oldState);
-	  break;
-	case WAITIO:
-	  sysCall8(oldState);
-	  break;
-	default:
-	  /*don't think this will ever actually happen */
-	  passUpOrDie(oldState, SYSTRAP);
-	}
-      }
+    }
   }
 
   /* decide if using *state or *semaddr for syscall arguments*/
   
 /*Create process - 1 syscall*/
-int sysCall1(state_PTR statep){
+HIDDEN void sysCall1(state_PTR statep){
   pcb_PTR temp = allocPcb();
   /*check for null, set v0 to -1 if so*/
   if(temp == NULL){
@@ -92,7 +117,7 @@ int sysCall1(state_PTR statep){
     /* add process to the ready queue */
     insertProcQ(&(readyQ), temp);
     /*need to copy all the 32 registers and the state over */
-    copyState(statep->s_a1, &(temp->p_state));
+    copyState((state_PTR)statep->s_a1, &(temp->p_state));
     /* since it worked out, lets set v0 to 0 */
     statep->s_v0 = 0;
   }
@@ -101,7 +126,7 @@ int sysCall1(state_PTR statep){
 }
 
 /*Terminate process - 2 syscall*/
-void sysCall2(){
+HIDDEN void sysCall2(){
   /* if current process has no children, just clear it off */
   if(emptyChild(currentProcess)){
     outChild(currentProcess);
@@ -118,7 +143,7 @@ void sysCall2(){
 }
 
 /* Check through our current process  and recursively kill its children processes and all things associated with it in the semaphore lists and ready queue. */  
-void killEverything(pcb_PTR p){
+HIDDEN void killEverything(pcb_PTR p){
   /* MANIACAL LAUGHTER */
   while(!emptyChild(p)){
     killEverything(removeChild(p));
@@ -151,10 +176,12 @@ void killEverything(pcb_PTR p){
 
 /*Perform V operation on semaphore, set 3 in a0 - 3 syscall*/
 /* this is the signal operation */
-void sysCall3(state_PTR statep){
-  pcb_PTR temp = NULL;
+HIDDEN void sysCall3(state_PTR statep){
+  pcb_PTR temp;
+  int* sem;
+  temp = NULL;
   /* save off the a1 register */
-  int* sem = (int*) statep->s_a1;
+  sem = (int*) statep->s_a1;
   /*increment */
   (*(sem))++;
   if((*(sem)) <= 0 ){
@@ -170,7 +197,7 @@ void sysCall3(state_PTR statep){
 
 /*Perform P operation on semaphore - 4 syscall*/
 /* this is the Wait operation */
-void sysCall4(state_PTR statep){
+HIDDEN void sysCall4(state_PTR statep){
   /* save off the a1 register */
   int* sem = (int*) statep->s_a1;
   (*(sem))--;
@@ -187,7 +214,7 @@ void sysCall4(state_PTR statep){
 }
 
 /*Specify vector and a bunch of other crap - 5 syscall*/
-void sysCall5(state_PTR statep){
+HIDDEN void sysCall5(state_PTR statep){
   /*get exception stored in a1 register */
   switch(statep->s_a1){
     /* for each case, check if trap new area is null in the current process. If it isn't kill it. Then set the values of the the old and new area to be the addresses of the exceptions, which is passed in the a2 (old state) and a3 (new state) register */
@@ -217,7 +244,7 @@ void sysCall5(state_PTR statep){
 }
 
 /*Gets the time, - 6 syscall*/
-void sysCall6(state_PTR statep){
+HIDDEN void sysCall6(state_PTR statep){
   /* get the current time into var time */
   cpu_t time;
   STCK(time);
@@ -231,7 +258,7 @@ void sysCall6(state_PTR statep){
 }
 
 /*Hold the clock - 7 syscall*/
-void sysCall7(state_PTR statep){
+HIDDEN void sysCall7(state_PTR statep){
   /* get the interval timer (last in the list of semaphores) */
   /* basically, do a sys4 call but with different values for the interval timer */
   int * sem = (int*) &(semd[MAGICNUM-1]);
@@ -247,17 +274,18 @@ void sysCall7(state_PTR statep){
 }
 
 /*Hold an IO? - 8 syscall*/
-void sysCall8(state_PTR statep){
+HIDDEN void sysCall8(state_PTR statep){
   /* get line number, device number, and terminal read operation from a registers*/
   int lineNum = statep->s_a1;
   int deviceNum = statep->s_a2;
   int terminalReadOp = statep->s_a3;
+  int semDeviceIndex;
+  int* semDevice;
   /* we want lineNum values between 3 an 7, so kill off anything else */
   if(lineNum < DISKINT || lineNum > TERMINT){
     sysCall2();
   }
   /* calculating which device it is */
-  int semDeviceIndex;
   /* check if it's a terminal read first */
   if(lineNum == TERMINT && terminalReadOp == TRUE){
     /* line we're at, - 3 (cuz we start at device 3), + terminalReadOp */
@@ -271,7 +299,7 @@ void sysCall8(state_PTR statep){
      (8 * semDeviceIndex) + deviceNum to find the right one */
   semDeviceIndex = (8 * semDeviceIndex) + deviceNum;
   /* basically does a sysCall 4 with these values on this device now... similar to how it was done with the interval timer in syscall 7 */
-  int * semDevice = &(semd[semDeviceIndex]);
+  semDevice = &(semd[semDeviceIndex]);
   (*semDevice)--;
   if((*semDevice) < 0){
     insertBlocked(semDevice, currentProcess);
@@ -287,17 +315,17 @@ void sysCall8(state_PTR statep){
 
 /* fairly simple, we just set the registers and the state to what we want it to be */
 void copyState(state_PTR original, state_PTR dest){
+  int i;
   dest->s_asid = original -> s_asid;
   dest->s_status = original->s_status;
   dest->s_pc = original->s_pc;
   dest->s_cause = original->s_cause;
-  int i;
   for(i = 0; i < STATEREGNUM; i++){
     dest->s_reg[i]=original->s_reg[i];
   }
 }
 
-void passUpOrDie(state_PTR statep, int trapCode){
+HIDDEN void passUpOrDie(state_PTR statep, int trapCode){
   /* need to check the code that was passed along in order to make sure we handle this correclty
  -- TLBTRAP = 0, PROGTRAP = 1, SYSTRAP = 2 --> defined in const.h already for us to use */
   /* in each the new state must != NULL, and we need to copy the state 

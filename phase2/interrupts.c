@@ -20,15 +20,26 @@ extern cpu_t stopTOD;            /* time the process stopped at */
 
 extern void copyState(state_PTR original, state_PTR dest);
 
+HIDDEN void done(cpu_t startTime);
+HIDDEN int getDevice(unsigned int* bitMap);
+
+void debugB(int a){
+  int i;
+  i = 0;
+}
+
 void interruptHandler(){
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
   cpu_t startTime, endTime;
   device_t * device;
   int deviceNum, lineNum = 0;
   int* sem;
+  /* need to be able to store the status of the device and put it into the
+     process' state later */
+  int deviceStatus;
+  int semIndex;
   /* figure out which interrupt line the interrupt is on */ 
   unsigned int cause = (oldInterruptArea->s_cause & IMASKON) >> 8;
-  unsigned int* findDeviceLineNum;
   /* start clock */
   STCK(startTime);
   /* this shouldn't ever happen */
@@ -94,25 +105,17 @@ void interruptHandler(){
  the first 3 devices without 8 semaphores and then multiply by the WordLen (4)
  However, we still need to get to the address of the registers' so we add 
  Interrupting Devices Bitmap address to it so we're in the right memory area.*/
-  findDeviceLineNum = ((lineNum - 3) * WORDLEN) + INTDEVBITMAP;
-  /* get the device number */
-  deviceNum = getDevice(findDeviceLineNum);
+  deviceNum = getDevice((unsigned int*) (INTDEVBITMAP + ((lineNum - 3) * WORDLEN)));
   /* get the device register now */
   /* get the lineNum - 3 for the first 3 devices without semaphores
    Then, * 8 for the each having 8 devices. 
    Then, * DEVREGSIZE (16) so we can get to the Device register address */
-  int lineNumOffset = (lineNum - 3) * 8 * DEVREGSIZE;
   /* need to get the offset of the device number we have 
      so use the devNum we got above * DEVREGSIZE (16) */
-  int devNumOffset = deviceNum * DEVREGSIZE;
   /* add our 2 values to INTDEVREG (address of starting interrupt device 
    register 3) and our offsets should give us the exact address of the 
    intterupt line #, device # device register we want */
-  device = (device_t*) (INTDEVREG + lineNumOffset + devNumOffset);
-  /* need to be able to store the status of the device and put it into the
-     process' state later */
-  int deviceStatus;
-  int semIndex = 0;
+  device = (device_t*) (INTDEVREG + ((lineNum - 3) * DEVREGSIZE * 8) + (deviceNum * DEVREGSIZE));
   /* if it's not 7, then we are not working witha terminal, meaning we 
      dont have to worry about the transmit and recv stuff at all */
   if(lineNum != 7){
@@ -145,7 +148,7 @@ to terminal -  bottom page 46 of princ of ops has codes */
       /* acknowledge terminal device that it's a receive command */
       device->t_recv_command = ACK;
       /* store our recv status */
-      device = device->t_recv_status;
+      deviceStatus = device->t_recv_status;
     }
   }
   /* home stretch */
@@ -167,7 +170,7 @@ to terminal -  bottom page 46 of princ of ops has codes */
 
 /* helper functions */
 
-void done(cpu_t startTime){
+HIDDEN void done(cpu_t startTime){
   cpu_t endTime;
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
   if(currentProcess != NULL){
@@ -184,29 +187,33 @@ void done(cpu_t startTime){
 
 /*identifies the device that an interrupt is happening at*/
 /*bitMap may need to be changed to unsigned*/
-int getDevice(unsigned int * bitMap){
-  if(bitMap == FIRST){
+HIDDEN int getDevice(unsigned int* bitMap){
+  unsigned int interruptCause = *bitMap;
+  if((interruptCause & FIRST) != 0){
     return 0;
   }
-  else if(bitMap == SECOND){
+  else if((interruptCause & SECOND) != 0){
     return 1;
   }
-  else if(bitMap == THIRD){
+  else if((interruptCause & THIRD) != 0){
     return 2;
   }
-  else if(bitMap == FOURTH){
+  else if((interruptCause & FOURTH) != 0){
     return 3;
   }
-  else if(bitMap == FIFTH){
+  else if((interruptCause & FIFTH) != 0){
     return 4;
   }
-  else if(bitMap == SIXTH){
+  else if((interruptCause & SIXTH) != 0){
     return 5;
   }
-  else if(bitMap == SEVENTH){
+  else if((interruptCause & SEVENTH) != 0){
     return 6;
   }
-  else if(bitMap == EIGHT){
+  else if((interruptCause & EIGHT) != 0){
     return 7;
+  }
+  else{
+    return -1;
   }
 }

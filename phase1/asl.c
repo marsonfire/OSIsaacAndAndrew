@@ -10,12 +10,6 @@ HIDDEN semd_t * allocSemd();
 HIDDEN void free(semd_t *s);
 HIDDEN semd_t * search(int * semAdd);
 
-void debug(int a){
-  int i;
-  i = 0;
-}
-
-
 /*
 *Function: Insert a specified pcb at a semd with a certain address. If the new semd is null,
 *return false.
@@ -113,13 +107,13 @@ pcb_PTR headBlocked (int *semAdd){
 * Function: Initiate the ASL. Allocate 20 sempahores, with 2 dummy nodes, 1 at the beginning and 1 at the end.
 */
 void initASL (){
+  int i;
   static semd_t semdTable[MAXPROC+2];/*unsure if needed*/
   /*Initialize both lists as NULL*/
   semdFree_h = NULL;
   semdActive_h = NULL;
 
   /*fill free list*/
-  int i;
   for(i=0;i<MAXPROC;i++){
     free(&(semdTable[i]));
   }
