@@ -8,7 +8,7 @@
 #include "../e/interrupts.e"
 #include "../e/scheduler.e"
 #include "../e/p2test.e"
-
+#include "/usr/local/include/umps2/umps2/libumps.e"
 
 int processCount;         /* number of processes in the system */
 int softBlockCount;    /* number of processes blocked and waiting for an interrupt */    
@@ -16,7 +16,7 @@ pcb_PTR currentProcess;   /* self explanatory... I hope... */
 pcb_PTR readyQ;         /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 int semd[MAGICNUM];     /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
 
-main(){
+void main(){
 
   devregarea_t * ramBaseAddress = (devregarea_t *) RAMBASEADDR; /* He calls this RAMTOP in the video but it's the same address (0x1000000)*/
 
@@ -83,14 +83,14 @@ main(){
   currentProcess->p_state.s_sp = (ramBaseAddress->rambase - PAGESIZE);
   currentProcess->p_state.s_pc = (memaddr) test; /*from p2test */
   currentProcess->p_state.s_t9 = (memaddr) test;
-  currentProcess ->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
+  currentProcess->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
   /*insert into the readyQueue */
   insertProcQ(&readyQ, p);
-  /* start hte interval timer */
+  /* make currentProcess nul again and then  start hte interval timer */
+  currentProcess = NULL;
   LDIT(INTERVALTIMER);
   /*start up scheduler*/
   scheduler();
   
   return -1;
 }
-
