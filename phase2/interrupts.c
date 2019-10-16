@@ -23,6 +23,7 @@ void interruptHandler(){
   cpu_t startTime, endTime;
   device_t * device;
   int deviceNum, lineNum = 0;
+  int* sem;
   /* figure out which interrupt line the interrupt is on */ 
   unsigned int interruptCause = (oldInterruptArea->s_cause & IMASKON) >> 8;
   /* start clock */
@@ -42,7 +43,7 @@ void interruptHandler(){
     /* start by loading interval timer with 100 miliseconds */
     LDIT(INTERVALTIMER);
     /* get interval timer from the semaphore list */
-    int * sem = &(semd[MAGICNUM - 1]);
+    sem = (int*)  &(semd[MAGICNUM - 1]);
     while(headBlocked(sem) != NULL){
       /* get blocked process */
       pcb_PTR blocked = removeBlocked(sem);
@@ -86,14 +87,79 @@ void interruptHandler(){
     lineNum = TERMINT;
   }
 
-  /* lineNum has the lineNum set from above. Must subtract 3 because we have the first 3 devices without 8 semaphores and then multiply by the WordLen (4). However, we still need to get to the address of the registers' so we add Interrupting Devices Bitmap address to it so we're in the right memory area. */
+  /* lineNum has the lineNum set from above. Must subtract 3 because we have
+ the first 3 devices without 8 semaphores and then multiply by the WordLen (4)
+ However, we still need to get to the address of the registers' so we add 
+ Interrupting Devices Bitmap address to it so we're in the right memory area.*/
   unsigned int* findDeviceLineNum = ((lineNum - 3) * WORDLEN) + INTDEVBITMAP;
   /* get the device number */
   deviceNum = getDevice(findDeviceLinNum);
   /* get the device register now */
-  /* get the */
-  device = (device_t)* INTDEVREG 
-  
+  /* get the lineNum - 3 for the first 3 devices without semaphores
+   Then, * 8 for the each having 8 devices. 
+   Then, * DEVREGSIZE (16) so we can get to the Device register address */
+  unsigned int *  lineNumOffset = (lineNum - 3) * 8 * DEVREGSIZE;
+  /* need to get the offset of the device number we have 
+     so use the devNum we got above * DEVREGSIZE (16) */
+  unsigned int * devNumOffset = devNum * DEVREGSIZE;
+  /* add our 2 values to INTDEVREG (address of starting interrupt device 
+   register 3) and our offsets should give us the exact address of the 
+   intterupt line #, device # device register we want */
+  device = (device_t *) (INTDEVREG + lineNumOffset + devNumOffset);
+  /* need to be able to store the status of the device and put it into the
+     process' state later */
+  int deviceStatus;
+  int semIndex = 0;
+  /* if it's not 7, then we are not working witha terminal, meaning we 
+     dont have to worry about the transmit and recv stuff at all */
+  if(lineNum != 7){
+    /* lineNum previously set - 3 for first 3 without semaphores
+then, multiply by 8 for each with 8 devices, plus the device number we got
+earlier so that we can get the index of the semaphore in our semd array */
+    semIndex = ((lineNum - 3) * 8) + deviceNum;
+    /* acknowledge the device with a 1 */
+    device->d_command = ACK;
+    /* save our status off */
+    deviceStatus = device->d_status;
+  }
+  /* now we have to do a terminal */
+  else{
+    /* check if the transmission status is ready, if not, we'll want to write
+to terminal -  bottom page 46 of princ of ops has codes */
+    if((device->t_transm_status & 0xFF) != 1){
+      /* get the semaphore index for later */
+      semIndex = ((lineNum - 3) * 8) + deviceNum;
+      /* acknowldge terminal device with a 1 -> slightly different... see it 
+	 set up in const.h or page 47 of princ of ops */
+      device->t_transm_command = ACK;
+      /* store our status */
+      deviceStatus = device->t_transm_status;
+    }
+    /* read from the terminal -> transmission recv is ready */
+    else {
+      /* -2 now because we are using the other terminal 'register' of sorts */
+      semIndex = ((linNum - 2) * 8) + deviceNum;
+      /* acknowledge terminal device that it's a receive command */
+      device->t_recv_command = ACK;
+      /* store our recv status */
+      device = device->t_recv_status;
+    }
+  }
+  /* home stretch */
+  /* signal to associated device in our semaphore array */
+  sem = &(semd[semIndex]);
+  (*sem)++;
+  if((*sem) <= 0){
+    /* signal to process that it's time to wake up and be a productive 
+       member of our society */
+    pcb_PTR p = removeBlocked(sem);
+    if(p != NULL){
+      p->p_state.s_v0 = deviceStatus;
+      insertProcQ(&(readyQ), p);
+      softBlockCount--;
+    }
+  }
+  done(startTime);
 }
 
 /* helper functions */
