@@ -15,6 +15,7 @@ extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
+extern int semd[MAGICNUM];		 /* array of our devices */
 
 void debugS(int a){
   int i;
@@ -23,25 +24,30 @@ void debugS(int a){
 
 void scheduler() {
 
-  debugS(100);
+	debugS(100001);
   /* before doig anything, let's save off the time the process took
  (if one was running) */
   if(currentProcess != NULL){
-    STCK(stopTOD); /* time the process stopped */
-    currentProcess->p_time = currentProcess->p_time + (stopTOD - startTOD); /* time the process took */
+    /* time the process stopped */
+    STCK(stopTOD);
+    /* time the process took */
+    currentProcess->p_time = currentProcess->p_time + (stopTOD - startTOD);
   }
 
-  if(!emptyProcQ(readyQ)){
-	currentProcess = removeProcQ(&readyQ); /*currentProcess = currentP we got off the queue */
-	STCK(startTOD); /* store the current time off */
-	/* load a timer with value of a quantum */
+  /* get the process to run off the queue */
+  currentProcess = removeProcQ(&readyQ);
+  if(currentProcess != NULL){
+	/* store the current time off */ 
+	STCK(startTOD);
+	/* load a timer with value of a quantum */ 
 	setTIMER(QUANTUM);
 	LDST(&(currentProcess->p_state));
   }
-  else{	
+  /* if here, the current process is null and we need to check our proc count */
+  else{
 	  /* we done */
 	  if(processCount == 0){
-	  	HALT();
+	    HALT();
 	  }
 	  /* scream, "FIRE FIRE FIRE FIRE FIRE FIRE!!!!!" cuz we're deadlocked*/
 	  if(processCount > 0 && softBlockCount == 0){
@@ -50,7 +56,7 @@ void scheduler() {
 	  /*go into suspended animation, waiting for our jobs to become un soft blocked */
 	  if(processCount > 0 && softBlockCount > 0){
 	  	/* enable interrupts and turn everything off and then enable the interrupts!*/
-	  	setSTATUS(ALLOFF | IECON | IEPON | IMASKON);
+	  	setSTATUS(getSTATUS() | ALLOFF | IECON | IEPON | IMASKON);
 		WAIT();
 	  }
 	}

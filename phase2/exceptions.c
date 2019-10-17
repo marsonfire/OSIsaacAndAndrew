@@ -31,15 +31,17 @@ void copyState(state_PTR original, state_PTR dest);
 void pgmTrapHandler();
 void tlbManagementHandler();
 
-void debugA(int a){
+void debugE(int a){
   int i;
   i = 0;
 }
 
 void sysCallHandler(){
     state_PTR oldState;
+    state_PTR tempState;
     unsigned int status;
-    unsigned int request;
+    int request;
+    unsigned int temp;
     /*get what was in the old state */
     oldState = (state_PTR)SYSCALLBREAKOLD;
     /* increment pc by 1 */
@@ -49,18 +51,16 @@ void sysCallHandler(){
     /*the syscall request that was made */
     request = oldState->s_a0;
 
-    if(request > 8){
-      passUpOrDie(oldState, SYSTRAP);
-    }
     /* if we're in this, we're in user mode trying to make a request here */
-    else if((request >= 1 && request <= 8) && (status & KERPOFF) != ALLOFF) {
+    if((request >= 1 && request <= 8) && ((status & KERPOFF) != ALLOFF)) {
     /* copy state from oldSys over to oldProgram, but need to get oldProgram's state first */
-      state_PTR temp = (state_PTR) PROGRAMTRAPOLD;
-      copyState(oldState, temp);
+      tempState = (state_PTR) PROGRAMTRAPOLD;
+      copyState(oldState, tempState);
       /* set the cause register to be reserved instruction exception (which is 10) (00...0100100 = 0x00000028)  */
       /* set the cause to be reserved instruction, must reset it first */
-      temp->s_cause = temp->s_cause & 0x00000000;
-      temp->s_cause = temp->s_cause | 0x00000028;
+      temp = (tempState->s_cause) & ~(0xFF);
+      tempState->s_cause = temp | 0x00000028;
+      debugE(300);
       /* call program trap handler */
       pgmTrapHandler();
     }
@@ -92,8 +92,8 @@ void sysCallHandler(){
       	  sysCall8(oldState);
       	  break;
       	default:
-          /*don't think this will ever actually happen */
-        passUpOrDie(oldState, SYSTRAP);
+        debugE(55555);
+          passUpOrDie(oldState, SYSTRAP);
       }
     }
   }
@@ -218,25 +218,26 @@ HIDDEN void sysCall5(state_PTR statep){
     /* for each case, check if trap new area is null in the current process. If it isn't kill it. Then set the values of the the old and new area to be the addresses of the exceptions, which is passed in the a2 (old state) and a3 (new state) register */
     case TLBTRAP:
       if(currentProcess->newTlb != NULL){
-	sysCall2();
+	     sysCall2();
       }
       currentProcess->oldTlb = (state_PTR)statep->s_a2;
       currentProcess->newTlb = (state_PTR)statep->s_a3;
       break;
     case PROGTRAP:
       if(currentProcess->newPgm != NULL){
-	sysCall2();
+	     sysCall2();
       }
       currentProcess->oldPgm = (state_PTR)statep->s_a2;
       currentProcess->newPgm = (state_PTR)statep->s_a3;
       break;
     case SYSTRAP:
       if(currentProcess->newSys != NULL){
-	sysCall2();
+	     sysCall2();
       }
       currentProcess->oldSys = (state_PTR)statep->s_a2;
       currentProcess->newSys = (state_PTR)statep->s_a3;
       break;
+    default:
   }
   LDST(statep);
 }
@@ -342,12 +343,17 @@ new state */
     }
     break;
   case PROGTRAP:
+  debugE(100);
     /* do progtrap thing */
     if(currentProcess->newPgm != NULL){ 
+      debugE(110);
       copyState(statep, currentProcess->oldPgm);
+      debugE(120);
       LDST(currentProcess->newPgm);
+      debugE(130);
     }
     else{
+      debugE(200);
       sysCall2();
     }
     break;
@@ -366,6 +372,7 @@ new state */
 }
 
 void pgmTrapHandler(){
+  debugE(1000);
   /* get the old program trap area and send it along to pass up or die */
   passUpOrDie((state_PTR)PROGRAMTRAPOLD, PROGTRAP);
 }

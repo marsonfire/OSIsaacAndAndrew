@@ -23,23 +23,26 @@ extern void copyState(state_PTR original, state_PTR dest);
 HIDDEN void done(cpu_t startTime);
 HIDDEN int getDevice(unsigned int* bitMap);
 
-void debugB(int a){
+void debugI(int a){
   int i;
   i = 0;
 }
 
 void interruptHandler(){
-  state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
+  state_PTR oldInterruptArea;
   cpu_t startTime, endTime;
-  device_t * device;
-  int deviceNum, lineNum = 0;
+  device_t* device;
+  int deviceNum, lineNum;
   int* sem;
   /* need to be able to store the status of the device and put it into the
      process' state later */
   int deviceStatus;
   int semIndex;
   /* figure out which interrupt line the interrupt is on */ 
-  unsigned int cause = (oldInterruptArea->s_cause & IMASKON) >> 8;
+  unsigned int cause;
+  oldInterruptArea = (state_PTR)INTERRUPTOLD;
+  cause = ((oldInterruptArea->s_cause) & IMASKON) >> 8;
+  lineNum = 0;
   /* start clock */
   STCK(startTime);
   /* this shouldn't ever happen */
@@ -57,18 +60,18 @@ void interruptHandler(){
     /* start by loading interval timer with 100 miliseconds */
     LDIT(INTERVALTIMER);
     /* get interval timer from the semaphore list */
-    sem = (int*)  &(semd[MAGICNUM - 1]);
+    sem = (int*) &(semd[MAGICNUM - 1]);
     while(headBlocked(sem) != NULL){
       /* get blocked process */
       pcb_PTR blocked = removeBlocked(sem);
       /* get tht time put in the endTime so we can calculate how long interrupt took */
       STCK(endTime);
       if(blocked != NULL){
-	insertProcQ(&(readyQ), blocked);
-	/* set the time the process took */
-	blocked->p_time = blocked->p_time + (endTime - startTime);
-	/* it won't be blocked anymore */
-	softBlockCount--;
+      	insertProcQ(&(readyQ), blocked);
+      	/* set the time the process took */
+      	blocked->p_time = blocked->p_time + (endTime - startTime);
+      	/* it won't be blocked anymore */
+      	softBlockCount--;
       }
     }
     /* reset it since we're done with being blocked */
@@ -100,7 +103,6 @@ void interruptHandler(){
   else if((cause & EIGHT)!= 0){
     lineNum = TERMINT;
   }
-
   /* lineNum has the lineNum set from above. Must subtract 3 because we have
  the first 3 devices without 8 semaphores and then multiply by the WordLen (4)
  However, we still need to get to the address of the registers' so we add 
@@ -119,36 +121,36 @@ void interruptHandler(){
   /* if it's not 7, then we are not working witha terminal, meaning we 
      dont have to worry about the transmit and recv stuff at all */
   if(lineNum != 7){
+    /* save our status off */
+    deviceStatus = device->d_status;
     /* lineNum previously set - 3 for first 3 without semaphores
 then, multiply by 8 for each with 8 devices, plus the device number we got
 earlier so that we can get the index of the semaphore in our semd array */
     semIndex = ((lineNum - 3) * 8) + deviceNum;
     /* acknowledge the device with a 1 */
     device->d_command = ACK;
-    /* save our status off */
-    deviceStatus = device->d_status;
   }
   /* now we have to do a terminal */
   else{
     /* check if the transmission status is ready, if not, we'll want to write
 to terminal -  bottom page 46 of princ of ops has codes */
     if((device->t_transm_status & 0xFF) != 1){
+      /* store our status */
+      deviceStatus = device->t_transm_status;
       /* get the semaphore index for later */
       semIndex = ((lineNum - 3) * 8) + deviceNum;
       /* acknowldge terminal device with a 1 -> slightly different... see it 
 	 set up in const.h or page 47 of princ of ops */
       device->t_transm_command = ACK;
-      /* store our status */
-      deviceStatus = device->t_transm_status;
     }
     /* read from the terminal -> transmission recv is ready */
     else {
+      /* store our recv status */
+      deviceStatus = device->t_recv_status;
       /* -2 now because we are using the other terminal 'register' of sorts */
       semIndex = ((lineNum - 2) * 8) + deviceNum;
       /* acknowledge terminal device that it's a receive command */
       device->t_recv_command = ACK;
-      /* store our recv status */
-      deviceStatus = device->t_recv_status;
     }
   }
   /* home stretch */
@@ -165,12 +167,14 @@ to terminal -  bottom page 46 of princ of ops has codes */
       softBlockCount--;
     }
   }
+  debugI(7777);
   done(startTime);
 }
 
 /* helper functions */
 
 HIDDEN void done(cpu_t startTime){
+  debugI(8888);
   cpu_t endTime;
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
   if(currentProcess != NULL){
