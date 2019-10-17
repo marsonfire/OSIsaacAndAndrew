@@ -16,12 +16,6 @@ pcb_PTR currentProcess;   /* self explanatory... I hope... */
 pcb_PTR readyQ;         /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 int semd[MAGICNUM];     /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
 
-void debug(int a){
-  int i;
-  i = 0;
-}
-
-
 int main(){
   devregarea_t* ramBaseAddress; 
   int i;
@@ -37,20 +31,6 @@ int main(){
   ramBaseAddress = (devregarea_t *) RAMBASEADDR;
   /* set up ramtop */
   ramtop = (ramBaseAddress->rambase) + (ramBaseAddress->ramsize);
-  /*init asl and pcb*/
-  initASL();
-  initPcbs();
-
-  /*global variables*/
-  processCount = 0;
-  softBlockCount = 0;
-  currentProcess = NULL;
-  readyQ = mkEmptyProcQ();
-
-  /* need to initalize and set each device to 0 */
-  for(i = 0; i <MAGICNUM; i++){
-    semd[i] = 0;
-  }
 
   /* set up and create new syscall area in memory */
   /* set pc and t9 */
@@ -89,24 +69,35 @@ int main(){
   interruptNew->s_sp = ramtop;
   interruptNew->s_status = ALLOFF;  
 
+  /*init asl and pcb*/
+  initASL();
+  initPcbs();
+
+  /*global variables*/
+  processCount = 0;
+  softBlockCount = 0;
+  currentProcess = NULL;
+  readyQ = mkEmptyProcQ();
+
+  /* need to initalize and set each device to 0 */
+  for(i = 0; i <MAGICNUM; i++){
+    semd[i] = 0;
+  }
+   
   /*get a pcb*/
   p = allocPcb();
   /*incrememnt process, since we just created it*/
   processCount++;
-  debug(222);
-  /* set the values that we need for our currentProcess to be initialized */
+    /* set the values that we need for our currentProcess to be initialized */
   p->p_state.s_sp = (ramtop - PAGESIZE);
-  debug(333);
-  p->p_state.s_pc = (memaddr) test; /*from p2test */
+    p->p_state.s_pc = (memaddr) test; /*from p2test */
   p->p_state.s_t9 = (memaddr) test;
   p->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
   /*insert into the readyQueue */
-  debug(8);
-  insertProcQ(&readyQ, p);
+    insertProcQ(&readyQ, p);
   /* make currentProcess nul again and then  start hte interval timer */
   currentProcess = NULL;
   LDIT(INTERVALTIMER);
-  debug(9);
   /*start up scheduler*/
   scheduler();
 
