@@ -37,8 +37,6 @@ void debugA(int a){
 }
 
 void sysCallHandler(){
-    debugA(100);
-
     state_PTR oldState;
     unsigned int status;
     unsigned int request;

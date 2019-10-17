@@ -23,8 +23,9 @@ void debugS(int a){
 
 void scheduler() {
 
-	debugS(1);
-  /* before doig anything, let's save off the time the process took (if one was running) */
+  debugS(100);
+  /* before doig anything, let's save off the time the process took
+ (if one was running) */
   if(currentProcess != NULL){
     STCK(stopTOD); /* time the process stopped */
     currentProcess->p_time = currentProcess->p_time + (stopTOD - startTOD); /* time the process took */

@@ -23,21 +23,20 @@ void debug(int a){
 
 
 int main(){
-  debug(111);
   devregarea_t* ramBaseAddress; 
   int i;
   state_PTR syscallNew;
   state_PTR programTrapNew;
   state_PTR tlbManagementNew;
   state_PTR interruptNew;
-  unsigned int RAMTOP;
+  unsigned int ramtop;
   pcb_PTR p;
 
   /* init and set up a bunch of our vars */
   /* He calls this RAMTOP in the video but it's the same address (0x1000000)*/
   ramBaseAddress = (devregarea_t *) RAMBASEADDR;
-  /* set up RAMPTOP */
-  RAMTOP = (ramBaseAddress->rambase) + (ramBaseAddress->ramsize);
+  /* set up ramtop */
+  ramtop = (ramBaseAddress->rambase) + (ramBaseAddress->ramsize);
   /*init asl and pcb*/
   initASL();
   initPcbs();
@@ -59,16 +58,17 @@ int main(){
   syscallNew = (state_PTR) SYSCALLBREAKNEW;
   syscallNew->s_pc = (memaddr) sysCallHandler; 
   syscallNew->s_t9 = (memaddr) sysCallHandler;
-  syscallNew->s_sp = RAMTOP;
+  syscallNew->s_sp = ramtop;
   syscallNew->s_status = ALLOFF;
 
+    
   /* set up and create new programTrap area in memory */
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
   programTrapNew = (state_PTR) PROGRAMTRAPNEW;
   programTrapNew->s_pc = (memaddr) pgmTrapHandler;
   programTrapNew->s_t9 = (memaddr) pgmTrapHandler;
-  programTrapNew->s_sp = RAMTOP;
+  programTrapNew->s_sp = ramtop;
   programTrapNew->s_status = ALLOFF;
 
   /* set up and create new tlbManagement area in memory */
@@ -77,32 +77,36 @@ int main(){
   tlbManagementNew = (state_PTR) TLBMANAGEMENTNEW;
   tlbManagementNew->s_pc = (memaddr) tlbManagementHandler;
   tlbManagementNew->s_t9 = (memaddr) tlbManagementHandler;
-  tlbManagementNew->s_sp = ramBaseAddress->rambase + ramBaseAddress->ramsize;
+  tlbManagementNew->s_sp = ramtop;
   tlbManagementNew->s_status = ALLOFF;
-
+   
   /* set up and create new interrupt area in memory */
   /* set pc and t9 */
   /* set sp to RAMTOP and set status to ALLOFF */
   interruptNew = (state_PTR) INTERRUPTNEW;
   interruptNew->s_pc = (memaddr) interruptHandler;
   interruptNew->s_t9 = (memaddr) interruptHandler;
-  interruptNew->s_sp = RAMTOP;
+  interruptNew->s_sp = ramtop;
   interruptNew->s_status = ALLOFF;  
 
   /*get a pcb*/
   p = allocPcb();
   /*incrememnt process, since we just created it*/
   processCount++;
+  debug(222);
   /* set the values that we need for our currentProcess to be initialized */
-  currentProcess->p_state.s_sp = (RAMTOP - PAGESIZE);
-  currentProcess->p_state.s_pc = (memaddr) test; /*from p2test */
-  currentProcess->p_state.s_t9 = (memaddr) test;
-  currentProcess->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
+  p->p_state.s_sp = (ramtop - PAGESIZE);
+  debug(333);
+  p->p_state.s_pc = (memaddr) test; /*from p2test */
+  p->p_state.s_t9 = (memaddr) test;
+  p->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
   /*insert into the readyQueue */
+  debug(8);
   insertProcQ(&readyQ, p);
   /* make currentProcess nul again and then  start hte interval timer */
   currentProcess = NULL;
   LDIT(INTERVALTIMER);
+  debug(9);
   /*start up scheduler*/
   scheduler();
 
