@@ -14,7 +14,8 @@ HIDDEN pcb_PTR pcbFree_h;
  */
 void freePcb(pcb_PTR p){
   /*insert new p into pcbFree */
-  insertProcQ(&pcbFree_h, p);
+  p->p_next = pcbFree_h;
+  pcbFree_h = p;
 }
 
 /*
@@ -23,8 +24,12 @@ void freePcb(pcb_PTR p){
  *is then returned for use, typically in a pcb queue. */
 pcb_PTR allocPcb (){
   /*creates placeholder, sets to current list element*/
-  pcb_PTR temp = removeProcQ(&pcbFree_h);
-	if(temp != NULL){
+  pcb_PTR temp;
+  if(pcbFree_h == NULL){
+    return NULL;
+  }
+  temp = pcbFree_h;
+  pcbFree_h = pcbFree_h->p_next;
 	  /*queue values to null*/
 	  temp->p_next = NULL;
 	  temp->p_prev = NULL;
@@ -34,9 +39,16 @@ pcb_PTR allocPcb (){
 	  temp->p_nextSib = NULL;
 	  temp->p_prevSib = NULL;
     temp->p_semAdd = NULL;
+    temp->p_time = 0;
+    temp->oldSys = NULL;
+    temp->oldPgm = NULL;
+    temp->oldTlb = NULL;
+    temp->newSys = NULL;
+    temp->newPgm = NULL;
+    temp->newTlb = NULL;
 
 	  /*once all is set, return new element*/
-	}
+	
 	return temp;
 	
 }
@@ -51,7 +63,7 @@ void initPcbs(){
   pcbFree_h = mkEmptyProcQ();
   /*set our global queue to be nothing/reset it */
   for(i = 0; i < MAXPROC; i++){
-    insertProcQ(&pcbFree_h, &procTable[i]);       /*put each pcb_t in our global queue*/
+    freePcb(&procTable[i]);       /*put each pcb_t in our global queue*/
   }
 }
 
@@ -76,22 +88,20 @@ int emptyProcQ (pcb_PTR tp){
  *2. There is a queue. Insert the pcb as the new tail pointer.
  */
 void insertProcQ (pcb_PTR *tp, pcb_PTR p){
-  pcb_PTR temp;
   /*we have an empty queue, so create a new one*/
   if(emptyProcQ(*tp)){
 	  p->p_next = p;  /*p's next points to itself*/
 	  p->p_prev = p;  /*p's previous points to itself*/
-	  *tp = p;	  /*the tail pointer is p since it's the only node in the queue*/
+	 	  /*the tail pointer is p since it's the only node in the queue*/
 	}
 	/*if here, we don't have an empty queue*/
-	else{;
-	  temp = *tp;	  /*save the tail pointer in a temp var to be used later*/
-	  *tp = p;	/*make the tail pointer point to our new node since it's going to the end*/
-	  p->p_next = temp->p_next;/*make p's next point to the head, which is what temp's (the previous tail) next was*/
-	  temp->p_next = p;			/*temp is now 2nd to last and p is last so set it's p_next*/
-	  p->p_prev = temp;			/*p's previous is now temp*/
-	  p->p_next->p_prev = p;		/*p's next = the head, make the head's previous be p so it's not pointing to the previous tail*/
+	else{
+	  p->p_next = (*tp)->p_next;	  /*save the tail pointer in a temp var to be used later*/
+	  (*tp)->p_next->p_prev = p;	/*make the tail pointer point to our new node since it's going to the end*/
+	  (*tp)->p_next = p;/*make p's next point to the head, which is what temp's (the previous tail) next was*/
+	  p->p_prev = (*tp);	   		/*p's next = the head, make the head's previous be p so it's not pointing to the previous tail*/
 	}
+  (*tp) = p;
 }
 
 
@@ -117,7 +127,6 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
     pcb_PTR head = (*tp)->p_next;           /*head that we'll remove*/
     (*tp)->p_next->p_next->p_prev  = (*tp);         /*sets the new head's previous to the tail */
     (*tp)->p_next = (*tp)->p_next->p_next;         /*set the new head */
-    head->p_next = NULL;
     return head;
   }
 }
@@ -132,54 +141,46 @@ pcb_PTR removeProcQ (pcb_PTR *tp){
  *the target or null if not found
  */
 pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p){
-  if(emptyProcQ(*tp)){
+  pcb_PTR ret, temp;
+  if(emptyProcQ(*tp) || p == NULL){
     return NULL;
   }
   /*only one element in the queue*/
-  else if((*tp)->p_next ==(*tp)){
-    pcb_PTR head = (*tp);
-    /* the one element in the queue is what we're looking for*/
-    if(head == p){
-      removeProcQ((*tp));
+  else if(p == (*tp)){
+    if((*tp)->p_next == (*tp)){
+      ret = (*tp);
+      (*tp) = mkEmptyProcQ();
+      return ret;
     }
-    /* that one element wasn't the one we're looking for, so return null */ 
-    else {
-      return NULL;
+    else{
+      (*tp)->p_prev->p_next = (*tp)->p_next;
+      (*tp)->p_next->p_prev = (*tp)->p_prev;
+      (*tp) = (*tp)->p_prev;
     }
+    return p;
   }
+  
   /*more than one element in the queue */
   else{
-    pcb_PTR pcbLookingAt = (*tp)->p_next; /*the head*/
-    /* the head is the element that we're looking for, so just remove it like normal*/
-    if(pcbLookingAt == p){
-      removeProcQ(tp);
-    }
-    /* the one we're looking for is the tail */
-    else if((*tp) == p){
-      pcb_PTR temp = (*tp);
-      (*tp)->p_prev->p_next = (*tp)->p_next;       /*the new tail's next is set to the head */
-      (*tp)->p_next->p_prev = (*tp)->p_prev;       /*the head's previous is set to tail's previous */
-      (*tp) = (*tp)->p_prev;                         /*the new tail is set as the new tail (old tail's previous */
-      return temp;
-    }
-    /* remove something from the middle */
-    else{
-      pcbLookingAt = (*tp)->p_next->p_next;       /*already checked for the head, so look at the second element */
-      while(pcbLookingAt != (*tp)){
-  if(pcbLookingAt  == p){
-    pcbLookingAt->p_prev->p_next = pcbLookingAt->p_next;         /*set the previous element's next to the one ahead of the one we're looking at */
-    pcbLookingAt->p_next->p_prev = pcbLookingAt->p_prev;         /*set the next element's prevoius to the one behind the one we're looking at */
-    return pcbLookingAt;
-  }
-  pcbLookingAt = pcbLookingAt->p_next;
+    temp = (*tp) -> p_next;
+    while(temp != (*tp)) {
+      /* found node ? */
+      if(temp == p){
+	/* unleave node and return it */
+	ret = temp;
+	ret -> p_prev -> p_next = ret -> p_next;
+	ret -> p_next -> p_prev = ret -> p_prev;
+	ret -> p_next = NULL;
+	ret -> p_prev = NULL;
+	return ret;
       }
-      return NULL;
+      temp = temp -> p_next;
     }
+    /* node not in list here */
+    return NULL;
   }
 }
-
-/*
- *Function: Returns a pointer to the first pcb, or head. If the queue is
+   /*Function: Returns a pointer to the first pcb, or head. If the queue is
  *empty, return NULL.
  */
 pcb_PTR headProcQ (pcb_PTR tp){
@@ -208,14 +209,16 @@ void insertChild(pcb_PTR parent, pcb_PTR p){
   if(emptyChild(parent)){
     parent->p_child = p;
     p->p_parent = parent;
+    p->p_nextSib = NULL;
+    p->p_prevSib = NULL;
   }
   /*parent has kids (good Catholics) */
   else{
     parent->p_child->p_prevSib = p;
-    p->p_nextSib = NULL;
-    p->p_parent = parent;
     p->p_nextSib = parent->p_child;
+    p->p_prevSib = NULL;
     parent->p_child = p;
+    p->p_parent = parent;
   }
 }
 
@@ -229,19 +232,24 @@ pcb_PTR removeChild(pcb_PTR parent){
   if(emptyChild(parent)){
     return NULL;
   }
+  pcb_PTR ret = parent -> p_child;
   /*only one child*/
-  else if(parent->p_child->p_nextSib == NULL){
+  if(parent->p_child->p_nextSib == NULL){
     pcb_PTR child = parent->p_child;
-    parent->p_child->p_parent = NULL;
     parent->p_child = NULL;
+    child->p_parent = NULL;
+    child->p_nextSib = NULL;
+    child->p_prevSib = NULL;
     return child;
   }
   /* more than one child */
   else{
-    pcb_PTR firstChild = parent->p_child;
-    parent->p_child->p_nextSib->p_prevSib = NULL;
     parent->p_child = parent->p_child->p_nextSib;
-    return firstChild;
+    parent->p_child->p_prevSib = NULL;
+    ret->p_parent = NULL;
+    ret->p_nextSib = NULL;
+    ret->p_prevSib = NULL;
+    return ret;
   }
 }
 
@@ -251,40 +259,28 @@ pcb_PTR removeChild(pcb_PTR parent){
  *currently has no parent, return NULL.
  */
 pcb_PTR outChild(pcb_PTR p){
-  /* orphan child has no parents :( */
-  if(p->p_parent == NULL){
+  if((p == NULL) || (p -> p_parent == NULL)){
+    /* p is not a child */
     return NULL;
   }
-  /*only 1 child */
-  else if(p->p_nextSib == NULL && p->p_prevSib == NULL){
-    p->p_parent->p_child = NULL;
-    p->p_parent = NULL;
+  if((p -> p_parent -> p_child) == p){
+    /* am newest child */
+    return removeChild(p -> p_parent);
+  }
+  if ((p -> p_nextSib) == NULL){
+    /* p is at the end of child list */
+    p -> p_prevSib -> p_nextSib = NULL;
+    p -> p_parent = NULL;
     return p;
   }
-  /* more than 1 one child */
-  else{
-    /* first child is what we're looking for */
-    if(p->p_prevSib == NULL){
-      p->p_parent->p_child = NULL;
-      p->p_parent = NULL;
-      p->p_nextSib = NULL;
-      return p;
-    }
-    /* last child is what we're looking for */
-    else if(p->p_nextSib == NULL){
-      p->p_prevSib->p_nextSib = NULL;
-      p->p_prevSib = NULL;
-      p->p_parent = NULL;
-      return p;
-    }
-    /*something in the middle to remove */
-    else {
-      p->p_prevSib->p_nextSib = p->p_nextSib;
-      p->p_nextSib->p_prevSib = p->p_prevSib;
-      p->p_nextSib = NULL;
-      p->p_prevSib = NULL;
-      p->p_parent = NULL;
-      return p;
-    }
+  if (((p -> p_prevSib) != NULL) && ((p -> p_nextSib) != NULL)){
+    /* p is is a middle child */
+    p -> p_nextSib -> p_prevSib = p -> p_prevSib;
+    p -> p_prevSib -> p_nextSib = p -> p_nextSib;
+    p -> p_parent = NULL;
+    return p;
   }
+  /* should never get to this */
+  return NULL;
+
 }

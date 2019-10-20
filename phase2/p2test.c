@@ -376,6 +376,7 @@ void p3() {
 
 /* p4 -- termination test process */
 void p4() {
+  print("p4 started");
 	switch (p4inc) {
 		case 1:
 			print("first incarnation of p4 starts\n");
@@ -479,6 +480,7 @@ void p5() {
 
 	/* set up higher level TRAP handlers (new areas) */
 	STST(&pstat_n);
+	print("in p5");
 	pstat_n.s_pc = pstat_n.s_t9 = (memaddr)p5prog;
 	
 	STST(&mstat_n);

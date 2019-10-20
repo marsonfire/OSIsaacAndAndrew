@@ -50,17 +50,16 @@ void sysCallHandler(){
     status = oldState->s_status;
     /*the syscall request that was made */
     request = oldState->s_a0;
-
     /* if we're in this, we're in user mode trying to make a request here */
     if((request >= 1 && request <= 8) && ((status & KERPOFF) != ALLOFF)) {
     /* copy state from oldSys over to oldProgram, but need to get oldProgram's state first */
+      debugE(2222);
       tempState = (state_PTR) PROGRAMTRAPOLD;
       copyState(oldState, tempState);
       /* set the cause register to be reserved instruction exception (which is 10) (00...0100100 = 0x00000028)  */
       /* set the cause to be reserved instruction, must reset it first */
       temp = (tempState->s_cause) & ~(0xFF);
       tempState->s_cause = temp | 0x00000028;
-      debugE(300);
       /* call program trap handler */
       pgmTrapHandler();
     }
@@ -80,6 +79,7 @@ void sysCallHandler(){
       	  sysCall4(oldState);
       	  break;
       	case SPECTRAPVEC:
+	  debugE(2000);
       	  sysCall5(oldState);
       	  break;
       	case GETCPUTIME:
@@ -149,7 +149,7 @@ HIDDEN void killEverything(pcb_PTR p){
   /* check if semAdd is null or not */
   if(p->p_semAdd != NULL){
     /* get the address of the semaphore to be used later */
-    int * sem = p->p_semAdd;
+    int* sem = p->p_semAdd;
     outBlocked(p);
     /* one less process that's waiting */
     if(sem >= &(semd[0]) && sem <= &(semd[MAGICNUM - 1])){
@@ -200,9 +200,10 @@ HIDDEN void sysCall4(state_PTR statep){
   int* sem = (int*) statep->s_a1;
   (*(sem))--;
   if((*(sem)) < 0){
+    cpu_t pTime;
     /* need to store off the time and see how long the process took */
-    STCK(stopTOD);
-    currentProcess->p_time = currentProcess->p_time + (stopTOD - startTOD);
+    STCK(pTime);
+    currentProcess->p_time = currentProcess->p_time + (pTime - startTOD);
     /* something is using the resource at the same time, so this process is currently blocked and we'll need to call the scheduler and we'll think about it later */
     copyState(statep, &(currentProcess->p_state));
     insertBlocked(sem, currentProcess);
@@ -213,32 +214,43 @@ HIDDEN void sysCall4(state_PTR statep){
 
 /*Specify vector and a bunch of other crap - 5 syscall*/
 HIDDEN void sysCall5(state_PTR statep){
+  debugE(1111);
   /*get exception stored in a1 register */
   switch(statep->s_a1){
     /* for each case, check if trap new area is null in the current process. If it isn't kill it. Then set the values of the the old and new area to be the addresses of the exceptions, which is passed in the a2 (old state) and a3 (new state) register */
+    debugE(2222);
     case TLBTRAP:
+      debugE(3333);
       if(currentProcess->newTlb != NULL){
 	     sysCall2();
       }
-      currentProcess->oldTlb = (state_PTR)statep->s_a2;
-      currentProcess->newTlb = (state_PTR)statep->s_a3;
+      else{
+	currentProcess->oldTlb = (state_PTR)statep->s_a2;
+	currentProcess->newTlb = (state_PTR)statep->s_a3;
+      }
       break;
     case PROGTRAP:
+      debugE(4444);
       if(currentProcess->newPgm != NULL){
 	     sysCall2();
       }
-      currentProcess->oldPgm = (state_PTR)statep->s_a2;
-      currentProcess->newPgm = (state_PTR)statep->s_a3;
+      else{
+	currentProcess->oldPgm = (state_PTR)statep->s_a2;
+	currentProcess->newPgm = (state_PTR)statep->s_a3;
+      }
       break;
     case SYSTRAP:
+      debugE(5555);
       if(currentProcess->newSys != NULL){
 	     sysCall2();
       }
-      currentProcess->oldSys = (state_PTR)statep->s_a2;
-      currentProcess->newSys = (state_PTR)statep->s_a3;
+      else{
+	currentProcess->oldSys = (state_PTR)statep->s_a2;
+	currentProcess->newSys = (state_PTR)statep->s_a3;
+      }
       break;
-    default:
   }
+  debugE(6666);
   LDST(statep);
 }
 
@@ -260,7 +272,7 @@ HIDDEN void sysCall6(state_PTR statep){
 HIDDEN void sysCall7(state_PTR statep){
   /* get the interval timer (last in the list of semaphores) */
   /* basically, do a sys4 call but with different values for the interval timer */
-  int * sem = (int*) &(semd[MAGICNUM-1]);
+  int* sem = (int*) &(semd[MAGICNUM-1]);
   (*sem)--;
   if((*sem) < 0){
     insertBlocked(sem, currentProcess);

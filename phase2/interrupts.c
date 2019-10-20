@@ -29,6 +29,7 @@ void debugI(int a){
 }
 
 void interruptHandler(){
+  debugI(4567);
   state_PTR oldInterruptArea;
   cpu_t startTime, endTime;
   device_t* device;
@@ -167,14 +168,12 @@ to terminal -  bottom page 46 of princ of ops has codes */
       softBlockCount--;
     }
   }
-  debugI(7777);
   done(startTime);
 }
 
 /* helper functions */
 
 HIDDEN void done(cpu_t startTime){
-  debugI(8888);
   cpu_t endTime;
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
   if(currentProcess != NULL){
