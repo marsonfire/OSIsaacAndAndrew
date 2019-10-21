@@ -26,22 +26,18 @@ HIDDEN void sysCall7(state_PTR statep);
 HIDDEN void sysCall8(state_PTR statep);
 HIDDEN void passUpOrDie(state_PTR statep, int trapCode);
 
-
 void copyState(state_PTR original, state_PTR dest);
 void pgmTrapHandler();
 void tlbManagementHandler();
 
-void debugE(int a){
-  int i;
-  i = 0;
-}
-
 void sysCallHandler(){
+    /* local vars */
     state_PTR oldState;
     state_PTR tempState;
     unsigned int status;
+    unsigned int privilegedInst;
     int request;
-    unsigned int temp;
+    /*initialize vars */
     /*get what was in the old state */
     oldState = (state_PTR)SYSCALLBREAKOLD;
     /* increment pc by 1 */
@@ -53,17 +49,16 @@ void sysCallHandler(){
     /* if we're in this, we're in user mode trying to make a request here */
     if((request >= 1 && request <= 8) && ((status & KERPOFF) != ALLOFF)) {
     /* copy state from oldSys over to oldProgram, but need to get oldProgram's state first */
-      debugE(2222);
       tempState = (state_PTR) PROGRAMTRAPOLD;
       copyState(oldState, tempState);
       /* set the cause register to be reserved instruction exception (which is 10) (00...0100100 = 0x00000028)  */
       /* set the cause to be reserved instruction, must reset it first */
-      temp = (tempState->s_cause) & ~(0xFF);
-      tempState->s_cause = temp | 0x00000028;
+      privilegedInst = (tempState->s_cause) & (0xFF);
+      tempState->s_cause = privilegedInst | PRIVINSTADD; 
       /* call program trap handler */
       pgmTrapHandler();
     }
-    /* we're in kernal mode and need to do some syscall */
+    /* we're in kernal mode and need to do some syscall -> could be user mode with syscall > 8 */
     else{
       switch(request){
         case CREATEPROC:
@@ -79,7 +74,6 @@ void sysCallHandler(){
       	  sysCall4(oldState);
       	  break;
       	case SPECTRAPVEC:
-	  debugE(2000);
       	  sysCall5(oldState);
       	  break;
       	case GETCPUTIME:
@@ -92,7 +86,6 @@ void sysCallHandler(){
       	  sysCall8(oldState);
       	  break;
       	default:
-        debugE(55555);
           passUpOrDie(oldState, SYSTRAP);
       }
     }
@@ -105,7 +98,8 @@ HIDDEN void sysCall1(state_PTR statep){
   pcb_PTR temp = allocPcb();
   /*check for null, set v0 to -1 if so*/
   if(temp == NULL){
-    statep->s_v0 = -1;
+    /* means we don't have any free processes to take */
+    statep->s_v0 = FAIL;
   }
   else{
     /*increment since we're gonna add one */
@@ -176,15 +170,14 @@ HIDDEN void killEverything(pcb_PTR p){
 /* this is the signal operation */
 HIDDEN void sysCall3(state_PTR statep){
   pcb_PTR temp;
-  int* sem;
-  temp = NULL;
+  int* mutex;
   /* save off the a1 register */
-  sem = (int*) statep->s_a1;
+  mutex = (int*) statep->s_a1;
   /*increment */
-  (*(sem))++;
-  if((*(sem)) <= 0 ){
+  (*(mutex))++;
+  if((*(mutex)) <= 0 ){
     /* unblock the process */
-    temp = removeBlocked(sem);
+    temp = removeBlocked(mutex);
     if(temp != NULL){
       /* put the process in the ready queue to be executed */
       insertProcQ(&(readyQ), temp);
@@ -196,17 +189,18 @@ HIDDEN void sysCall3(state_PTR statep){
 /*Perform P operation on semaphore - 4 syscall*/
 /* this is the Wait operation */
 HIDDEN void sysCall4(state_PTR statep){
+  cpu_t pTime;
   /* save off the a1 register */
-  int* sem = (int*) statep->s_a1;
-  (*(sem))--;
-  if((*(sem)) < 0){
-    cpu_t pTime;
+  int* mutex = (int*) statep->s_a1;
+  (*(mutex))--;
+  if((*(mutex)) < 0){
     /* need to store off the time and see how long the process took */
     STCK(pTime);
     currentProcess->p_time = currentProcess->p_time + (pTime - startTOD);
-    /* something is using the resource at the same time, so this process is currently blocked and we'll need to call the scheduler and we'll think about it later */
+    /* something is using the resource at the same time, so this process is currently 
+    blocked and we'll need to call the scheduler and we'll think about it later */
     copyState(statep, &(currentProcess->p_state));
-    insertBlocked(sem, currentProcess);
+    insertBlocked(mutex, currentProcess);
     scheduler();
   }
   LDST(statep);
@@ -214,43 +208,39 @@ HIDDEN void sysCall4(state_PTR statep){
 
 /*Specify vector and a bunch of other crap - 5 syscall*/
 HIDDEN void sysCall5(state_PTR statep){
-  debugE(1111);
   /*get exception stored in a1 register */
   switch(statep->s_a1){
-    /* for each case, check if trap new area is null in the current process. If it isn't kill it. Then set the values of the the old and new area to be the addresses of the exceptions, which is passed in the a2 (old state) and a3 (new state) register */
-    debugE(2222);
+    /* for each case, check if trap new area is null in the current process. 
+    If it isn't kill it. Then set the values of the the old and new area to be the 
+    addresses of the exceptions, which is passed in the a2 (old state) and a3 (new state) register */
     case TLBTRAP:
-      debugE(3333);
       if(currentProcess->newTlb != NULL){
-	     sysCall2();
+        sysCall2();
       }
       else{
-	currentProcess->oldTlb = (state_PTR)statep->s_a2;
-	currentProcess->newTlb = (state_PTR)statep->s_a3;
+      	currentProcess->oldTlb = (state_PTR)statep->s_a2;
+      	currentProcess->newTlb = (state_PTR)statep->s_a3;
       }
       break;
     case PROGTRAP:
-      debugE(4444);
       if(currentProcess->newPgm != NULL){
-	     sysCall2();
+	      sysCall2();
       }
       else{
-	currentProcess->oldPgm = (state_PTR)statep->s_a2;
-	currentProcess->newPgm = (state_PTR)statep->s_a3;
+      	currentProcess->oldPgm = (state_PTR)statep->s_a2;
+      	currentProcess->newPgm = (state_PTR)statep->s_a3;
       }
       break;
     case SYSTRAP:
-      debugE(5555);
       if(currentProcess->newSys != NULL){
-	     sysCall2();
+        sysCall2();
       }
       else{
-	currentProcess->oldSys = (state_PTR)statep->s_a2;
-	currentProcess->newSys = (state_PTR)statep->s_a3;
+      	currentProcess->oldSys = (state_PTR)statep->s_a2;
+      	currentProcess->newSys = (state_PTR)statep->s_a3;
       }
       break;
   }
-  debugE(6666);
   LDST(statep);
 }
 
@@ -272,10 +262,10 @@ HIDDEN void sysCall6(state_PTR statep){
 HIDDEN void sysCall7(state_PTR statep){
   /* get the interval timer (last in the list of semaphores) */
   /* basically, do a sys4 call but with different values for the interval timer */
-  int* sem = (int*) &(semd[MAGICNUM-1]);
-  (*sem)--;
-  if((*sem) < 0){
-    insertBlocked(sem, currentProcess);
+  int* intervalTimerDev = (int*) &(semd[MAGICNUM-1]);
+  (*intervalTimerDev)--;
+  if((*intervalTimerDev) < 0){
+    insertBlocked(intervalTimerDev, currentProcess);
     /* copy over old statep into the currentProcess' state */
     copyState(statep, &(currentProcess->p_state));
     /* now this process will be soft blocked */
@@ -300,15 +290,15 @@ HIDDEN void sysCall8(state_PTR statep){
   /* check if it's a terminal read first */
   if(lineNum == TERMINT && terminalReadOp == TRUE){
     /* line we're at, - 3 (cuz we start at device 3), + terminalReadOp */
-    semDeviceIndex = lineNum - 3 + terminalReadOp;
+    semDeviceIndex = lineNum - NOSEMS + terminalReadOp;
   }
   else{
     /* line we're at - 3, and terminalOp is 0, so don't add it */
-    semDeviceIndex = lineNum - 3;
+    semDeviceIndex = lineNum - NOSEMS;
   }
   /* we have 8 of each of the devices... so we need to do:
      (8 * semDeviceIndex) + deviceNum to find the right one */
-  semDeviceIndex = (8 * semDeviceIndex) + deviceNum;
+  semDeviceIndex = (EIGHTPERDEV * semDeviceIndex) + deviceNum;
   /* basically does a sysCall 4 with these values on this device now... similar to how it was done with the interval timer in syscall 7 */
   semDevice = &(semd[semDeviceIndex]);
   (*semDevice)--;
@@ -355,17 +345,12 @@ new state */
     }
     break;
   case PROGTRAP:
-  debugE(100);
     /* do progtrap thing */
     if(currentProcess->newPgm != NULL){ 
-      debugE(110);
       copyState(statep, currentProcess->oldPgm);
-      debugE(120);
       LDST(currentProcess->newPgm);
-      debugE(130);
     }
     else{
-      debugE(200);
       sysCall2();
     }
     break;
@@ -384,7 +369,6 @@ new state */
 }
 
 void pgmTrapHandler(){
-  debugE(1000);
   /* get the old program trap area and send it along to pass up or die */
   passUpOrDie((state_PTR)PROGRAMTRAPOLD, PROGTRAP);
 }

@@ -15,6 +15,11 @@
 #define INTERVALTIMER 100000 /*interval timer time */
 #define MAGICNUM 49      /* magic num is the number of devices we have (49) */ 
 
+/* 3 devices without sems */
+#define NOSEMS 3
+ /* each has 8 devices */
+#define EIGHTPERDEV 8
+
 /* creating syscall processor state areas */
 #define SYSCALLBREAKNEW 0x200003D4
 #define SYSCALLBREAKOLD 0x20000348
@@ -55,6 +60,8 @@
 #define SEVENTH 0x00000040
 #define EIGHT 0x00000080
 
+/* privileged instruction address */
+#define PRIVINSTADD 0x00000028
 
 /* Hardware & software constants */
 #define PAGESIZE		4096	/* page size in bytes */
@@ -138,6 +145,8 @@
 /* device common COMMAND codes */
 #define RESET		0
 #define ACK		1
+#define FAIL -1
+#define READY 1
 
 /* operations */
 #define	MIN(A,B)	((A) < (B) ? A : B)

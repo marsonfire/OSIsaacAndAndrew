@@ -23,13 +23,7 @@ extern void copyState(state_PTR original, state_PTR dest);
 HIDDEN void done(cpu_t startTime);
 HIDDEN int getDevice(unsigned int* bitMap);
 
-void debugI(int a){
-  int i;
-  i = 0;
-}
-
 void interruptHandler(){
-  debugI(4567);
   state_PTR oldInterruptArea;
   cpu_t startTime, endTime;
   device_t* device;
@@ -43,7 +37,6 @@ void interruptHandler(){
   unsigned int cause;
   oldInterruptArea = (state_PTR)INTERRUPTOLD;
   cause = ((oldInterruptArea->s_cause) & IMASKON) >> 8;
-  lineNum = 0;
   /* start clock */
   STCK(startTime);
   /* this shouldn't ever happen */
@@ -108,7 +101,7 @@ void interruptHandler(){
  the first 3 devices without 8 semaphores and then multiply by the WordLen (4)
  However, we still need to get to the address of the registers' so we add 
  Interrupting Devices Bitmap address to it so we're in the right memory area.*/
-  deviceNum = getDevice((unsigned int*) (INTDEVBITMAP + ((lineNum - 3) * WORDLEN)));
+  deviceNum = getDevice((unsigned int*) (INTDEVBITMAP + ((lineNum - NOSEMS) * WORDLEN)));
   /* get the device register now */
   /* get the lineNum - 3 for the first 3 devices without semaphores
    Then, * 8 for the each having 8 devices. 
@@ -118,7 +111,7 @@ void interruptHandler(){
   /* add our 2 values to INTDEVREG (address of starting interrupt device 
    register 3) and our offsets should give us the exact address of the 
    intterupt line #, device # device register we want */
-  device = (device_t*) (INTDEVREG + ((lineNum - 3) * DEVREGSIZE * 8) + (deviceNum * DEVREGSIZE));
+  device = (device_t*) (INTDEVREG + ((lineNum - NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + (deviceNum * DEVREGSIZE));
   /* if it's not 7, then we are not working witha terminal, meaning we 
      dont have to worry about the transmit and recv stuff at all */
   if(lineNum != 7){
@@ -127,7 +120,7 @@ void interruptHandler(){
     /* lineNum previously set - 3 for first 3 without semaphores
 then, multiply by 8 for each with 8 devices, plus the device number we got
 earlier so that we can get the index of the semaphore in our semd array */
-    semIndex = ((lineNum - 3) * 8) + deviceNum;
+    semIndex = ((lineNum - NOSEMS) * EIGHTPERDEV) + deviceNum;
     /* acknowledge the device with a 1 */
     device->d_command = ACK;
   }
@@ -135,11 +128,11 @@ earlier so that we can get the index of the semaphore in our semd array */
   else{
     /* check if the transmission status is ready, if not, we'll want to write
 to terminal -  bottom page 46 of princ of ops has codes */
-    if((device->t_transm_status & 0xFF) != 1){
+    if((device->t_transm_status & 0xFF) != READY){
       /* store our status */
       deviceStatus = device->t_transm_status;
       /* get the semaphore index for later */
-      semIndex = ((lineNum - 3) * 8) + deviceNum;
+      semIndex = ((lineNum - NOSEMS) * EIGHTPERDEV) + deviceNum;
       /* acknowldge terminal device with a 1 -> slightly different... see it 
 	 set up in const.h or page 47 of princ of ops */
       device->t_transm_command = ACK;
@@ -148,8 +141,8 @@ to terminal -  bottom page 46 of princ of ops has codes */
     else {
       /* store our recv status */
       deviceStatus = device->t_recv_status;
-      /* -2 now because we are using the other terminal 'register' of sorts */
-      semIndex = ((lineNum - 2) * 8) + deviceNum;
+      /* -2 now because we are using the "other" read part of the terminal of sorts */
+      semIndex = ((lineNum - 2) * EIGHTPERDEV) + deviceNum;
       /* acknowledge terminal device that it's a receive command */
       device->t_recv_command = ACK;
     }

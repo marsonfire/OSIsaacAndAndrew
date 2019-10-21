@@ -17,16 +17,10 @@ extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 extern int semd[MAGICNUM];		 /* array of our devices */
 
-void debugS(int a){
-  int i;
-  i = 0;
-}
-
 void scheduler() {
 
-	debugS(100001);
   /* before doig anything, let's save off the time the process took
- (if one was running) */
+ 	(if one was running) */
   if(currentProcess != NULL){
     /* time the process stopped */
     STCK(stopTOD);
@@ -44,21 +38,17 @@ void scheduler() {
 	LDST(&(currentProcess->p_state));
   }
   /* if here, the current process is null and we need to check our proc count */
-  else{
-	  /* we done */
-	  if(processCount == 0){
-	    HALT();
-	  }
-	  /* scream, "FIRE FIRE FIRE FIRE FIRE FIRE!!!!!" cuz we're deadlocked*/
-	  if(processCount > 0 && softBlockCount == 0){
-		PANIC();
-	  }
-	  /*go into suspended animation, waiting for our jobs to become un soft blocked */
-	  if(processCount > 0 && softBlockCount > 0){
-	  	/* enable interrupts and turn everything off and then enable the interrupts!*/
-	  	setSTATUS(getSTATUS() | ALLOFF | IECON | IEPON | IMASKON);
-		WAIT();
-	  }
-	}
+  if(processCount == 0){
+  	HALT();
+  }
+  /* scream, "FIRE FIRE FIRE FIRE FIRE FIRE!!!!!" cuz we're deadlocked*/
+  if(processCount > 0 && softBlockCount == 0){
+  	PANIC();
+  }
+  /*go into suspended animation, waiting for our jobs to become un soft blocked */
+  if(processCount > 0 && softBlockCount > 0){
+  /* enable interrupts and turn everything off and then enable the interrupts!*/
+  	setSTATUS(getSTATUS() | ALLOFF | IECON | IEPON | IMASKON);WAIT();
+  }
 }
  

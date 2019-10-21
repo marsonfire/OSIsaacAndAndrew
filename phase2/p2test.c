@@ -376,7 +376,6 @@ void p3() {
 
 /* p4 -- termination test process */
 void p4() {
-  print("p4 started");
 	switch (p4inc) {
 		case 1:
 			print("first incarnation of p4 starts\n");

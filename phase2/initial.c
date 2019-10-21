@@ -11,10 +11,10 @@
 #include "/usr/local/include/umps2/umps/libumps.e"
 
 int processCount;         /* number of processes in the system */
-int softBlockCount;    /* number of processes blocked and waiting for an interrupt */    
+int softBlockCount;       /* number of processes blocked and waiting for an interrupt */    
 pcb_PTR currentProcess;   /* self explanatory... I hope... */
-pcb_PTR readyQ;         /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-int semd[MAGICNUM];     /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
+pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
+int semd[MAGICNUM];       /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
 
 int main(){
   devregarea_t* ramBaseAddress; 
@@ -80,7 +80,7 @@ int main(){
   readyQ = mkEmptyProcQ();
 
   /* need to initalize and set each device to 0 */
-  for(i = 0; i <MAGICNUM; i++){
+  for(i = 0; i < MAGICNUM; i++){
     semd[i] = 0;
   }
    
@@ -88,14 +88,15 @@ int main(){
   p = allocPcb();
   /*incrememnt process, since we just created it*/
   processCount++;
-    /* set the values that we need for our currentProcess to be initialized */
+  /* set the values that we need for our currentProcess to be initialized */
   p->p_state.s_sp = (ramtop - PAGESIZE);
-    p->p_state.s_pc = (memaddr) test; /*from p2test */
+  /* set the state to test from p2test because that's where we'll start */
+  p->p_state.s_pc = (memaddr) test;
   p->p_state.s_t9 = (memaddr) test;
   p->p_state.s_status = ALLOFF | IECON | TEON | IMASKON;
   /*insert into the readyQueue */
-    insertProcQ(&readyQ, p);
-  /* make currentProcess nul again and then  start hte interval timer */
+  insertProcQ(&readyQ, p);
+  /* make currentProcess null again and then start the interval timer */
   currentProcess = NULL;
   LDIT(INTERVALTIMER);
   /*start up scheduler*/
