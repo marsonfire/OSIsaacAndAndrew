@@ -1,4 +1,8 @@
-/* initial.c */
+/* ========== initial.c ==========
+ * Serves as the starting point of the OS, with the initial call
+ * of main(). This .c file itself serves as an initializer for 
+ * many of the global variables used in this OS
+ */
 #include "../h/types.h"
 #include "../h/const.h"
 #include "../e/pcb.e"
@@ -10,12 +14,20 @@
 #include "../e/p2test.e"
 #include "/usr/local/include/umps2/umps/libumps.e"
 
+/* ===== Global Variables ===== */
 int processCount;         /* number of processes in the system */
 int softBlockCount;       /* number of processes blocked and waiting for an interrupt */    
 pcb_PTR currentProcess;   /* self explanatory... I hope... */
 pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 int semd[MAGICNUM];       /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
+/* ===== End Global Variables ===== */
 
+/* ===== Start Main() =====*/
+/* ==Function: Entry point of the OS. Populates the ROM reserves, initializes
+ * the ASL, PCBs, semaphores, and a single process. Once startup is
+ * complete, the scheduler is called
+ * ==Arguments: None
+ */
 int main(){
   devregarea_t* ramBaseAddress; 
   int i;
@@ -104,3 +116,4 @@ int main(){
 
   return -1;
 }
+/* ===== End Main() ===== */
