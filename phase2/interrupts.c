@@ -1,4 +1,8 @@
-/* interrupts.c */
+/* ========== Interrupts.c ==========
+ * Interrupts serves as the handler for interruptions of every type, 
+ * and converts said interrupts into V operations on the selected 
+ * device. 
+ */
 #include "../h/const.h"
 #include "../h/types.h"
 #include "../e/asl.e"
@@ -9,20 +13,32 @@
 #include "../e/interrupts.e"
 #include "/usr/local/include/umps2/umps/libumps.e"
 
-/*global vars */
+/* ===== Start Initial Global Variables ===== */
 extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 extern int semd[MAGICNUM];       /* our 49 devices */
+/* ===== End Initial Global Variables ===== */
+/* ===== Start Scheduler Global Variables ===== */
 extern cpu_t startTOD;           /* time the process started at */
 extern cpu_t stopTOD;            /* time the process stopped at */
+/* ===== End Scheduler Global Variables ===== */
 
+/* function from exceptions.c */
 extern void copyState(state_PTR original, state_PTR dest);
 
+/* Module helper function declaration */
 HIDDEN void done(cpu_t startTime);
 HIDDEN int getDevice(unsigned int* bitMap);
 
+
+/* ===== Start interruptHandler() ===== */
+/*
+ *==Function: Called as a setup in initial.c. It reserves areas
+ * in memory for future interrupts and then passes along to scheduler()
+ *==Arguments: None.
+ */
 void interruptHandler(){
   state_PTR oldInterruptArea;
   cpu_t startTime, endTime;
@@ -163,9 +179,19 @@ to terminal -  bottom page 46 of princ of ops has codes */
   }
   done(startTime);
 }
+/* ===== End interruptHandler() ===== */
 
-/* helper functions */
+/***** ======= Helper Functions ======= *****/
 
+/* ===== Start done() ===== 
+ *==Function: Records the time off the cpu, and then checks for a
+ * current running process when an interrupt occurs. If there is a
+ * process, it does not have any time added to it when the OS works
+ * through the interrupt handler.
+ *==Arguments: cpu_t startTime, which serves as the starting time for
+ * when an interrupt happens.
+ *==Returns: None
+ */
 HIDDEN void done(cpu_t startTime){
   cpu_t endTime;
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
@@ -180,11 +206,17 @@ HIDDEN void done(cpu_t startTime){
   }
   scheduler();
 }
+/* ===== End done() ===== */
 
-/*identifies the device that an interrupt is happening at*/
-/*bitMap may need to be changed to unsigned*/
+/* ===== Start getDevice() ===== 
+ *==Function: Gets the device associated with an interrupt based on
+ * the bit position.
+ *==Arguments: unsigned int* bitMap, which is associated with a device.
+ *==Returns: The relative position of the highest bit in the map. Will 
+ * return -1 if no bit is found.
+ */
 HIDDEN int getDevice(unsigned int* bitMap){
-  unsigned int interruptCause = *bitMap;
+  unsigned int interruptCause = (*bitMap);
   if((interruptCause & FIRST) != 0){
     return 0;
   }
@@ -213,3 +245,4 @@ HIDDEN int getDevice(unsigned int* bitMap){
     return -1;
   }
 }
+/* ===== End getDevice() ===== */
