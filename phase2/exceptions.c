@@ -1,3 +1,12 @@
+/* ========== exceptions.c ==========
+* Exceptions.c takes the various exceptions that can occur (syscall, 
+* TLB, and program traps), and handles them through the correct handler.  
+* A majority of excpetions.c is handling the various syscalls and 
+* what they mean. Exceptions.c handles creation and destroying of processes
+* along with determining if those processes need to be signaled or told
+* to wait. Furthermore, exceptions.c handles clock exceptions when the
+* clocks are done, and waiting for an I/O device. 
+*/
 #include "../h/const.h"
 #include "../h/types.h"
 #include "../e/asl.e"
@@ -6,15 +15,19 @@
 #include "../e/scheduler.e"
 #include "/usr/local/include/umps2/umps/libumps.e"
 
-/*global vars */
+/* ===== Start Initial Global Variables ===== */
 extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
 extern int semd[MAGICNUM];       /* our 49 devices */
-extern cpu_t startTOD; /* time the process started at */
-extern cpu_t stopTOD;  /* time the process stopped at */
+/* ===== End Initial Global Variables ===== */
+/* ===== Start Scheduler Global Variables ===== */
+extern cpu_t startTOD;           /* time the process started at */
+extern cpu_t stopTOD;            /* time the process stopped at */
+/* ===== End Scheduler Global Variables ===== */
 
+/* Local module helper function declaration */
 HIDDEN void sysCall1(state_PTR statep);
 HIDDEN void sysCall2();
 HIDDEN void killEverything(pcb_PTR p);
@@ -24,12 +37,21 @@ HIDDEN void sysCall5(state_PTR statep);
 HIDDEN void sysCall6(state_PTR statep);
 HIDDEN void sysCall7(state_PTR statep);
 HIDDEN void sysCall8(state_PTR statep);
-HIDDEN void passUpOrDie(state_PTR statep, int trapCode);
+HIDDEN void passUpOrDie(int trapCode);
 
+/* Module functions that will be available to other classes */
 void copyState(state_PTR original, state_PTR dest);
 void pgmTrapHandler();
 void tlbManagementHandler();
 
+/* ===== start sysCallHandler() =====  */
+/*
+ * ==Function: When a syscall is made, sysCallHandler will take the 
+ * syscall request and call the appropriate sysCall function for that
+ * request. If not in kernal mode, will instead raise a privileged 
+ * instruction error and call the program trap handler. 
+ * ==Arguments: None
+ */
 void sysCallHandler(){
     /* local vars */
     state_PTR oldState;
@@ -86,14 +108,18 @@ void sysCallHandler(){
       	  sysCall8(oldState);
       	  break;
       	default:
-          passUpOrDie(oldState, SYSTRAP);
+          passUpOrDie(SYSTRAP);
       }
     }
   }
-
-  /* decide if using *state or *semaddr for syscall arguments*/
   
-/*Create process - 1 syscall*/
+/* ===== Start sysCall1() =====  */
+/*
+ * ==Function: When called and if there's space for a process to be created, 
+ * a new process is created from the free list of PCB's. That new process will
+ * added to the ready queue to be worked on. 
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall1(state_PTR statep){
   pcb_PTR temp = allocPcb();
   /*check for null, set v0 to -1 if so*/
@@ -117,7 +143,12 @@ HIDDEN void sysCall1(state_PTR statep){
   LDST(statep);
 }
 
-/*Terminate process - 2 syscall*/
+/* ===== Start sysCall2() =====  */
+/*
+ * ==Function: Gets the current process running and ends it. All children
+ * processes are ended too. 
+ * ==Arguments: none
+ */
 HIDDEN void sysCall2(){
   /* if current process has no children, just clear it off */
   if(emptyChild(currentProcess)){
@@ -134,7 +165,13 @@ HIDDEN void sysCall2(){
   scheduler();
 }
 
-/* Check through our current process  and recursively kill its children processes and all things associated with it in the semaphore lists and ready queue. */  
+/* ===== Start killEverything() =====  */
+/*
+ * ==Function: Helper function for sysCall2 to make recursion easier.
+ * Recursively checks the process for any children and destroys each of 
+ * them. 
+ * ==Arguments: pcb_PTR p - process to be killed
+ */
 HIDDEN void killEverything(pcb_PTR p){
   /* MANIACAL LAUGHTER */
   while(!emptyChild(p)){
@@ -166,8 +203,12 @@ HIDDEN void killEverything(pcb_PTR p){
   processCount--;
 }
 
-/*Perform V operation on semaphore, set 3 in a0 - 3 syscall*/
-/* this is the signal operation */
+/* ===== Start sysCall3() =====  */
+/*
+ * ==Function: A V (signal) operation on the semaphore. Checks if a process can 
+ * be unblocked and inserted onto the ready queue to be executed.  
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall3(state_PTR statep){
   pcb_PTR temp;
   int* mutex;
@@ -186,8 +227,13 @@ HIDDEN void sysCall3(state_PTR statep){
   LDST(statep);
 }
 
-/*Perform P operation on semaphore - 4 syscall*/
-/* this is the Wait operation */
+/* ===== Start sysCall4() =====  */
+/*
+ * ==Function: A P (wait) operation on the semaphore. Checks to see if the 
+ * shared resource is being used by another process. This makes a process
+ * blocked and is forced to wait if resource is being used.    
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall4(state_PTR statep){
   cpu_t pTime;
   /* save off the a1 register */
@@ -206,7 +252,14 @@ HIDDEN void sysCall4(state_PTR statep){
   LDST(statep);
 }
 
-/*Specify vector and a bunch of other crap - 5 syscall*/
+/* ===== Start sysCall5() =====  */
+/*
+ * ==Function: Specifies the exception state vector and kills process if the
+ * new space in memory isn't null. If null, save the contents of a2 (old processor
+ * state) and a3 (new processor state) are saved into the associated new and old 
+ * areas. 
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall5(state_PTR statep){
   /*get exception stored in a1 register */
   switch(statep->s_a1){
@@ -244,7 +297,12 @@ HIDDEN void sysCall5(state_PTR statep){
   LDST(statep);
 }
 
-/*Gets the time, - 6 syscall*/
+/* ===== Start sysCall6() =====  */
+/*
+ * ==Function: The total time the process took is recorded and saved off
+ * in order to see how much time has been used up by that process.  
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall6(state_PTR statep){
   /* get the current time into var time */
   cpu_t time;
@@ -258,7 +316,12 @@ HIDDEN void sysCall6(state_PTR statep){
   LDST(statep);
 }
 
-/*Hold the clock - 7 syscall*/
+/* ===== Start sysCall7() =====  */
+/*
+ * ==Function: Perform a P (wait) operation on the interval timer, which will be V'd
+ * (signaled) every 100 milliseconds.
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall7(state_PTR statep){
   /* get the interval timer (last in the list of semaphores) */
   /* basically, do a sys4 call but with different values for the interval timer */
@@ -274,7 +337,12 @@ HIDDEN void sysCall7(state_PTR statep){
   scheduler();
 }
 
-/*Hold an IO? - 8 syscall*/
+/* ===== Start sysCall8() =====  */
+/*
+ * ==Function: Wait for an I/O device. After finding the correct device and line 
+ * number, will need to get that device and perform a P (wait) operation on it.
+ * ==Arguments: state_PTR statep - gets the current state that made the sys call
+ */
 HIDDEN void sysCall8(state_PTR statep){
   /* get line number, device number, and terminal read operation from a registers*/
   int lineNum = statep->s_a1;
@@ -314,7 +382,15 @@ HIDDEN void sysCall8(state_PTR statep){
   LDST(statep);
 }
 
-/* fairly simple, we just set the registers and the state to what we want it to be */
+/* ===== Start copyState() =====  */
+/*
+ * ==Function: When called and if there's space for a process to be created, 
+ * a new process is created from the free list of PCB's. That new process will
+ * added to the ready queue to be worked on. 
+ * ==Arguments: state_PTR original - original state that will be copied over
+ *              state_PTR dest - state that will contain the original state's
+ *                               values 
+ */
 void copyState(state_PTR original, state_PTR dest){
   int i;
   dest->s_asid = original -> s_asid;
@@ -326,16 +402,26 @@ void copyState(state_PTR original, state_PTR dest){
   }
 }
 
-HIDDEN void passUpOrDie(state_PTR statep, int trapCode){
+/* ===== Start passUpOrDie() =====  */
+/*
+ * ==Function: Checks the trap code we're given and checks the new area based on
+ * the trap code. If not null, must copy the copy the old state over and load the 
+ * new state. Otherwise, want to kill the current process. 
+ * ==Arguments: int trapCode - code passed in to tell which kind of trap we have
+ *                            TLBTRAP = 0, PROGTRAP = 1, SYSTRAP = 2
+ */
+HIDDEN void passUpOrDie(int trapCode){
   /* need to check the code that was passed along in order to make sure we handle this correclty
  -- TLBTRAP = 0, PROGTRAP = 1, SYSTRAP = 2 --> defined in const.h already for us to use */
   /* in each the new state must != NULL, and we need to copy the state 
-over from the given statep, to the currentProcess' old state and then load the 
-new state */
+  over from the given statep, to the currentProcess' old state and then load the 
+  new state */
   /*vid 8 (and class) */
+  state_PTR statep;
   switch(trapCode){
   case TLBTRAP:
     /* do tlb trap thing */
+    statep = (state_PTR)TLBMANAGEMENTOLD;
     if(currentProcess->newTlb != NULL){
       copyState(statep, currentProcess->oldTlb);
       LDST(currentProcess->newTlb);
@@ -346,6 +432,7 @@ new state */
     break;
   case PROGTRAP:
     /* do progtrap thing */
+    statep = (state_PTR)PROGRAMTRAPOLD;
     if(currentProcess->newPgm != NULL){ 
       copyState(statep, currentProcess->oldPgm);
       LDST(currentProcess->newPgm);
@@ -356,6 +443,7 @@ new state */
     break;
   case SYSTRAP:
     /* do syscalltrap thing*/
+    statep = (state_PTR)SYSCALLBREAKOLD;
     if(currentProcess->newSys != NULL){
       copyState(statep, currentProcess->oldSys);
       LDST(currentProcess->newSys);
@@ -368,12 +456,24 @@ new state */
   /* don't like repetitive code, but only want to kill processes when we want to, and not accidentally... */
 }
 
+/* ===== Start pgmTrapHandler() =====  */
+/*
+ * ==Function: Calls passUpOrDie() with a program trap code. Called when a privileged 
+ * instruction is called when not in kernal mode.  
+ * ==Arguments: none
+ */
 void pgmTrapHandler(){
   /* get the old program trap area and send it along to pass up or die */
-  passUpOrDie((state_PTR)PROGRAMTRAPOLD, PROGTRAP);
+  passUpOrDie(PROGTRAP);
 }
 
+/* ===== Start tlbManagementHandler() =====  */
+/*
+ * ==Function: Calls passUpOrDie() with a tlb trap code. Called when umps2 fails
+ * to translate a virtual address to the corresponding physical address in memory. 
+ * ==Arguments: none
+ */
 void tlbManagementHandler(){
   /*get the old tlb management area and sent it along to pass up or die */
-  passUpOrDie((state_PTR)TLBMANAGEMENTOLD, TLBTRAP);
+  passUpOrDie(TLBTRAP);
 }

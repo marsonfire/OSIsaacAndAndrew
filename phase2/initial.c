@@ -1,7 +1,7 @@
 /* ========== initial.c ==========
  * Serves as the starting point of the OS, with the initial call
  * of main(). This .c file itself serves as an initializer for 
- * many of the global variables used in this OS
+ * many of the global variables used in this OS.
  */
 #include "../h/types.h"
 #include "../h/const.h"

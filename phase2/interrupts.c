@@ -28,7 +28,7 @@ extern cpu_t stopTOD;            /* time the process stopped at */
 /* function from exceptions.c */
 extern void copyState(state_PTR original, state_PTR dest);
 
-/* Module helper function declaration */
+/* local module helper function declaration */
 HIDDEN void done(cpu_t startTime);
 HIDDEN int getDevice(unsigned int* bitMap);
 
@@ -134,8 +134,8 @@ void interruptHandler(){
     /* save our status off */
     deviceStatus = device->d_status;
     /* lineNum previously set - 3 for first 3 without semaphores
-then, multiply by 8 for each with 8 devices, plus the device number we got
-earlier so that we can get the index of the semaphore in our semd array */
+        then, multiply by 8 for each with 8 devices, plus the device number we got
+        earlier so that we can get the index of the semaphore in our semd array */
     semIndex = ((lineNum - NOSEMS) * EIGHTPERDEV) + deviceNum;
     /* acknowledge the device with a 1 */
     device->d_command = ACK;
@@ -143,14 +143,14 @@ earlier so that we can get the index of the semaphore in our semd array */
   /* now we have to do a terminal */
   else{
     /* check if the transmission status is ready, if not, we'll want to write
-to terminal -  bottom page 46 of princ of ops has codes */
+        to terminal -  bottom page 46 of princ of ops has codes */
     if((device->t_transm_status & 0xFF) != READY){
       /* store our status */
       deviceStatus = device->t_transm_status;
       /* get the semaphore index for later */
       semIndex = ((lineNum - NOSEMS) * EIGHTPERDEV) + deviceNum;
       /* acknowldge terminal device with a 1 -> slightly different... see it 
-	 set up in const.h or page 47 of princ of ops */
+	     set up in const.h or page 47 of princ of ops */
       device->t_transm_command = ACK;
     }
     /* read from the terminal -> transmission recv is ready */
@@ -196,7 +196,7 @@ HIDDEN void done(cpu_t startTime){
   cpu_t endTime;
   state_PTR oldInterruptArea = (state_PTR)INTERRUPTOLD;
   if(currentProcess != NULL){
-    /* start the clockand figure out the start time of the process */
+    /* start the clock and figure out the start time of the process */
     STCK(endTime);
     startTOD = startTOD + (endTime - startTime);
     /* copy over the old interrupt area state into current process' state */

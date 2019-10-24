@@ -1,8 +1,8 @@
 /* =========== scheduler.c ==========
  * Serves as the manager for new job requests in the OS. This module is 
- * responsible for both scheduling new jobs off the the ready queue and 
- * preventing any schedule conflicts, as this system does not implement
- * threading.
+ * responsible for both scheduling new jobs off the the ready queue as a 
+ * simple round robin scheudling algorithm. The scheduler also checks for 
+ * deadlock situations and any scheudling conflicts. 
  */
 
 #include "../h/types.h"
@@ -32,7 +32,7 @@ extern int semd[MAGICNUM];		 /* array of our devices */
 /* ===== Start Scheduler() =====  */
 /*
  * ==Function: Schedules all processes and records cpu time usage of each
- * process. Also tends to PANIC if the system deadlocks.
+ * process. Also checks if the system deadlocks.
  * ==Arguments: None
  */
 void scheduler() {
