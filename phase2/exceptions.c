@@ -463,7 +463,6 @@ HIDDEN void passUpOrDie(int trapCode){
  * ==Arguments: none
  */
 void pgmTrapHandler(){
-  /* get the old program trap area and send it along to pass up or die */
   passUpOrDie(PROGTRAP);
 }
 
@@ -474,6 +473,5 @@ void pgmTrapHandler(){
  * ==Arguments: none
  */
 void tlbManagementHandler(){
-  /*get the old tlb management area and sent it along to pass up or die */
   passUpOrDie(TLBTRAP);
 }
