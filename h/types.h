@@ -116,5 +116,9 @@ typedef struct semd_t {
 #define s_HI	s_reg[29]
 #define s_LO	s_reg[30]
 
+typedef struct pteEntry_t {
+  unsigned int entryHi;
+  unsigned int entryLow;
+}
 
 #endif
