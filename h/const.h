@@ -163,4 +163,9 @@
 #define KSEGNUM 32
 #define KSEGNUMOS 64
 #define THREETRAPS 3
+
+/* you've been a dirty dirty girl havent you */
+#define DIRTY 0x00000400
+#define SEGSTARTADDRESS 0x20000500
+
 #endif

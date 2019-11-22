@@ -133,8 +133,8 @@ typedef struct pgTableOS_T{
 
 typedef struct segTable_t {
 	pgTableOS_T *ksegOS;
-	pgTable_t *kuSeg2;
-	pgTable_t *kuSeg3;
+	pgTable_t *kuseg2;
+	pgTable_t *kuseg3;
 }segTable_t;
 
 typedef struct framePool_t{
