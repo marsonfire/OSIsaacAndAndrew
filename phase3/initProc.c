@@ -12,7 +12,7 @@ segTable_t *segTable = SEGSTARTADDRESS ;
 
 
 HIDDEN void stubby();
-
+HIDDEN void findVictim();
 
 void test(){
   int i, j;
@@ -37,7 +37,7 @@ void test(){
     segTable->ksegOS = (&ksegOS);
     segTable->kuseg3 = (&kuseg3);
     segTable->kuseg2 = /* process' kseg 2 table */
-    
+	
       /*
     state->s_sp = some stack space at i+1 sys space
     state->s_pc = stubby();
@@ -57,3 +57,10 @@ HIDDEN void stubby(){
     
   }
 }
+
+HIDDEN void findVictim(){
+  static int next = 0;
+  return ((next + 1) % POOLSIZE);
+}
+
+
