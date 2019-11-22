@@ -9,6 +9,8 @@ pgTableOS_t ksegOS;
 pgTable_t kuseg2;
 pgTable_t kuseg3;
 
+
+
 HIDDEN void stubby();
 
 
@@ -29,8 +31,12 @@ void test(){
 
 HIDDEN void stubby(){
   unsigned int getENTRYHI();
+  int i;
   /* read from tape 
   3 sys5's to set up new areas
   1 each for 3 trap types 
   */
+  for(i = 0; i < someNum; i++){
+    
+  }
 }
