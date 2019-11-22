@@ -157,5 +157,10 @@
 #define STCK(T) ((T) = ((* ((cpu_t *) TODLOADDR)) / (* ((cpu_t *) TIMESCALEADDR))))
 #define LDIT(T)	((* ((cpu_t *) INTERVALTMR)) = (T) * (* ((cpu_t *) TIMESCALEADDR))) 
 
+/* phase 3 */
+#define MAXUPROC 8
 
+#define KSEGNUM 32
+#define KSEGNUMOS 64
+#define THREETRAPS 3
 #endif

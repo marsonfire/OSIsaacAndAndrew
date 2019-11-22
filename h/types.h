@@ -119,6 +119,38 @@ typedef struct semd_t {
 typedef struct pteEntry_t {
   unsigned int entryHi;
   unsigned int entryLow;
-}
+}pteEntry_t;
+
+typedef struct pgTable_t {
+	int header;
+	pteEntry_t ptes[KSEGNUM];
+}pgTable_t;
+
+typedef struct pgTableOS_T{
+	int header;
+	pteEntry_t ptes[KSEGNUMOS]
+}pgTableOS_T;
+
+typedef struct segTable_t {
+	pgTableOS_T *ksegOS;
+	pgTable_t *kuSeg2;
+	pgTable_t *kuSeg3;
+}segTable_t;
+
+typedef struct framePool_t{
+	int procID;
+	int segNum;
+	int pgNum;
+	pteEntry_t *pte;
+} framePool_t;
+
+typedef struct userProcData_t{
+	int sem;
+	pgTable_t kuSeg2;
+	unsigned int backStoreAddress;
+	state_PTR newTraps[3];
+	state_PTR oldTraps[3];
+}userProcData_t;
+
 
 #endif
