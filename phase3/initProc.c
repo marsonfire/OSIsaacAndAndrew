@@ -8,8 +8,12 @@
 pgTableOS_t ksegOS;
 pgTable_t kuseg2;
 pgTable_t kuseg3;
-segTable_t *segTable = SEGSTARTADDRESS ;
+framePool_t framePool[FRAMESIZE];
+int swapSem, masterSem;
+userProcData_t userProcs[MAXUPROC];
 
+/* init our for 49 sema4s */
+int semTable[SEMNUM];
 
 HIDDEN void stubby();
 HIDDEN void findVictim();
@@ -17,16 +21,40 @@ HIDDEN void findVictim();
 void test(){
   int i, j;
   state_PTR state;
+  segTable_t * segTable;
+  masterSem = 0;
+  swapSem = 1;
+  
+  /*set up OS page table*/
+  ksegOS.header = ((PTEMAGICNO) << 24) KSEGNUMOS;
+  for(i = 0; i < KSEGNUMOS; i++){
+    ksegOS.ptes[i].entryHi = (0x20000 + i) << 12;
+    ksegOS.ptes[i].entryLow = ((0x20000 + i) << 12) | DIRTY | VALID | GLOBAL;
+  }
 
+  /* set up framePool */
+  for(i = 0; i < FRAMESIZE; i++){
+    framePool[i].procID = -1; /* asid */
+    framePool[i].segNum = 0;
+    framePool[i].pgNum = 0;
+    framePool[i].pte = NULL;
+  }
+
+  /* setup our semaphores */
+  for(i = 0; i < SEMNUM; i++){
+    semTable[i] = 1;
+  }
+  
   /* create our processes*/
   for(i = 0; i < MAXUPROC; i++){
-    
-    /* i is our asid, but asid must be 1-8 since 0 is reserved */
-    state->s_asid = i + 1;
 
+    
+    
+    for(j = 0
+    
     /* set up entry hi and entry low in kuseg2 */
     for(j = 0; j < KSEGNUM; j++){
-      kuseg2->ptes[j].entryHi = 0x8000 + i /* + some shift */;
+      kuseg2->ptes[j].entryHi = 0x8000 + i ;
       kuseg2->ptes[j].entryLow = ALLOFF | DIRTY;
     }
     
@@ -42,7 +70,11 @@ void test(){
     state->s_sp = some stack space at i+1 sys space
     state->s_pc = stubby();
     sys1()
-    */
+      */
+  }
+  ksegOS.header = ((0x2a) << 24) KSEGNUMOS;
+  for(i = 0; i < KSEGNUMOS; i++){
+    ksegOS.ptes[i].entryHi
   }
 }
 

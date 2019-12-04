@@ -13,7 +13,7 @@
 #endif
 #define QUANTUM 5000     /* time for cpu job to run */
 #define INTERVALTIMER 100000 /*interval timer time */
-#define MAGICNUM 49      /* magic num is the number of devices we have (49) */ 
+#define SEMNUM 49      /* magic num is the number of devices we have (49) */ 
 
 /* 3 devices without sems */
 #define NOSEMS 3
@@ -159,6 +159,7 @@
 
 /* phase 3 */
 #define MAXUPROC 8
+#define FRAMESIZE 3 * MAXUPROC
 
 #define KSEGNUM 32
 #define KSEGNUMOS 64
@@ -166,6 +167,9 @@
 
 /* you've been a dirty dirty girl havent you */
 #define DIRTY 0x00000400
+#define VALID 0x00000200
+#define GLOBAL 0x00000100
+
 #define SEGSTARTADDRESS 0x20000500
 
 #endif
