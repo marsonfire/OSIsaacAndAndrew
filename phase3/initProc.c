@@ -24,6 +24,7 @@ void test(){
   segTable_t * segTable;
   masterSem = 0;
   swapSem = 1;
+  state_PTR uProc;
   
   /*set up OS page table*/
   ksegOS.header = ((PTEMAGICNO) << 24) KSEGNUMOS;
@@ -48,34 +49,25 @@ void test(){
   /* create our processes*/
   for(i = 0; i < MAXUPROC; i++){
 
-    
-    
-    for(j = 0
-    
-    /* set up entry hi and entry low in kuseg2 */
-    for(j = 0; j < KSEGNUM; j++){
-      kuseg2->ptes[j].entryHi = 0x8000 + i ;
-      kuseg2->ptes[j].entryLow = ALLOFF | DIRTY;
-    }
+    /* find the user process that we want to work with and set up its kuseg2 */
+    userProcs[i-1].kuSeg2.header = (PTEMAGICNO << 24) | KSEGNUM;
+      for(j = 0; j < KSEGNUM; j++){
+	userProcs[i-1].kuSeg2.ptes[j].entryHi = ((0x80000 + j) << 12) | (i << 6);
+	userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTYON;
+      }
     
     /* fix last entry's entryhi */
-    kuseg2->ptes[KSEGNUM - 1}.entryHI = 0xBFFFF + i + /* a shift I think */;
+    userProcs[i-1].kuseg2->ptes[KSEGNUM - 1}.entryHI = (0xBFFFF << 12) | (i << 6);
 
     /* set the appropriate entries in the global segment table */
     segTable->ksegOS = (&ksegOS);
-    segTable->kuseg3 = (&kuseg3);
-    segTable->kuseg2 = /* process' kseg 2 table */
-	
-      /*
-    state->s_sp = some stack space at i+1 sys space
-    state->s_pc = stubby();
-    sys1()
-      */
+    segTable->kuseg2 = (&(userProcs[i-1].kuSeg2));
+
+    /* u-proc initialization, see Kaya 4.7 */
+    uProc.s_asid = i << 6;
+    uProc.s_sp = 
   }
-  ksegOS.header = ((0x2a) << 24) KSEGNUMOS;
-  for(i = 0; i < KSEGNUMOS; i++){
-    ksegOS.ptes[i].entryHi
-  }
+
 }
 
 HIDDEN void stubby(){
