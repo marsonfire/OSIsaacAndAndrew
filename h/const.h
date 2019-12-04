@@ -172,4 +172,14 @@
 
 #define SEGSTARTADDRESS 0x20000500
 
+#define OSSIZE(KSEGOSNUM * PAGESIZE)
+#define KSEGSTARTADDR (ROMPAGESTART + OSSIZE)
+#define TAPENUM 8
+#define DISKNUM 8
+/* bottom of first page of disk buffers, access to other pages by adding PAGESIZE */
+#define DISKSTARTADDR (KSEGSTARTADDR - (DISKNUM * PAGESIZE))
+/* bottom of first page of tape buffers, access to other pages by adding PAGESIZE */
+#define TAPESTARTADDR (KSEGSTARTADDR - (((DISKNUM + TAPENUM) * PAGESIZE)))
+
+
 #endif

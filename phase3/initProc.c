@@ -18,6 +18,7 @@ int semTable[SEMNUM];
 HIDDEN void stubby();
 HIDDEN void findVictim();
 
+
 void test(){
   int i, j;
   state_PTR state;
@@ -48,16 +49,18 @@ void test(){
   
   /* create our processes*/
   for(i = 0; i < MAXUPROC; i++){
-
     /* find the user process that we want to work with and set up its kuseg2 */
     userProcs[i-1].kuSeg2.header = (PTEMAGICNO << 24) | KSEGNUM;
-      for(j = 0; j < KSEGNUM; j++){
-	userProcs[i-1].kuSeg2.ptes[j].entryHi = ((0x80000 + j) << 12) | (i << 6);
-	userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTYON;
-      }
+    for(j = 0; j < KSEGNUM; j++){
+      userProcs[i-1].kuSeg2.ptes[j].entryHi = ((0x80000 + j) << 12) | (i << 6);
+	    userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTYON;
+    }
     
     /* fix last entry's entryhi */
     userProcs[i-1].kuseg2->ptes[KSEGNUM - 1}.entryHI = (0xBFFFF << 12) | (i << 6);
+
+    /* set the sem for the uProc we're on */
+    userProcs[i-1].sem = 0;
 
     /* set the appropriate entries in the global segment table */
     segTable->ksegOS = (&ksegOS);
@@ -65,12 +68,26 @@ void test(){
 
     /* u-proc initialization, see Kaya 4.7 */
     uProc.s_asid = i << 6;
-    uProc.s_sp = 
+    uProc.s_pc = (memaddr) initUProc;
+    uProc.s_t9 = (memaddr) initUProc;
+    uProc.s_sp = /* idk what to put here */
+    uProc.s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
+
+    /*create the process we've been working with, with a sys1 */
+    SYSCALL(CREATEPROCESS, (int)&uProc);
   }
+
+  /* p the master sem */
+  for(i=0; i < MAXUPROC; i++){
+    SYSCALL(PASSEREN, (int)&masterSem);
+  }
+
+  /* SEND THE PROCESS TO THE CHIAR!!! */
+  SYSCALL(TERMINATEPROCESS)
 
 }
 
-HIDDEN void stubby(){
+HIDDEN void initUProc(){
   unsigned int getENTRYHI();
   int i;
   /* read from tape 
