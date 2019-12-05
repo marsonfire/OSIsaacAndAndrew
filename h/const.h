@@ -88,6 +88,18 @@
 #define WAITCLOCK       7
 #define WAITIO          8
 
+/*System Calls - Phase 3*/
+#define READTERM        9
+#define WRITETERM       10
+#define VVIRTSEMA4      11
+#define PVIRTSEMA4      12
+#define DELAY           13
+#define DISKPUT         14
+#define DISKGET         15
+#define WRITEPRINTER    16
+#define GETTOD          17
+#define TERMINATE       18
+
 /* utility constants */
 #define	TRUE		1
 #define	FALSE		0
