@@ -177,14 +177,13 @@
 #define KSEGNUMOS 64
 #define THREETRAPS 3
 
-/* you've been a dirty dirty girl havent you */
 #define DIRTY 0x00000400
 #define VALID 0x00000200
 #define GLOBAL 0x00000100
 
 #define SEGSTARTADDRESS 0x20000500
 
-#define OSSIZE(KSEGOSNUM * PAGESIZE)
+#define OSSIZE (KSEGOSNUM * PAGESIZE)
 #define KSEGSTARTADDR (ROMPAGESTART + OSSIZE)
 #define TAPENUM 8
 #define DISKNUM 8
@@ -201,5 +200,10 @@
 #define PROGSTARTADDR 0x800000B0
 
 #define ASIDENTRYHI 0x00000FC0
+
+#define CREATEPROCESS 1
+#define TERMINATEPROCESS 2
+
+#define PASSEREN 4
 
 #endif

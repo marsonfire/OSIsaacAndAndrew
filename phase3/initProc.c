@@ -9,6 +9,8 @@
 #include "../h/const.h"
 #include "../h/types.h"
 #include "/usr/local/include/umps2/umps/libumps.e"
+#include "../e/exceptions.e"
+#include "../e/sysSupport.e"
 
 /* init global vars */
 pgTableOS_t ksegOS;
@@ -29,14 +31,13 @@ HIDDEN void initUProc();
  */
 void test(){
   int i, j;
-  state_PTR state;
   segTable_t * segTable;
   masterSem = 0;
   swapSem = 1;
   state_PTR uProc;
   
   /*set up OS page table*/
-  ksegOS.header = ((PTEMAGICNO) << 24) KSEGNUMOS;
+  ksegOS.header = ((PTEMAGICNO) << 24) |  KSEGNUMOS;
   for(i = 0; i < KSEGNUMOS; i++){
     ksegOS.ptes[i].entryHi = (0x20000 + i) << 12;
     ksegOS.ptes[i].entryLow = ((0x20000 + i) << 12) | DIRTY | VALID | GLOBAL;
@@ -62,11 +63,11 @@ void test(){
     userProcs[i-1].kuSeg2.header = (PTEMAGICNO << 24) | KSEGNUM;
     for(j = 0; j < KSEGNUM; j++){
       userProcs[i-1].kuSeg2.ptes[j].entryHi = ((0x80000 + j) << 12) | (i << 6);
-      userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTYON;
+      userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTY;
     }
     
     /* fix last entry's entryhi */
-    userProcs[i-1].kuseg2->ptes[KSEGNUM - 1}.entryHI = (0xBFFFF << 12) | (i << 6);
+    userProcs[i-1].kuSeg2.ptes[KSEGNUM - 1].entryHi = (0xBFFFF << 12) | (i << 6);
 
     /* set the sem for the uProc we're on */
     userProcs[i-1].sem = 0;
@@ -76,11 +77,11 @@ void test(){
     segTable->kuseg2 = (&(userProcs[i-1].kuSeg2));
 
     /* u-proc initialization, see Kaya 4.7 */
-    uProc.s_asid = i << 6;
-    uProc.s_pc = (memaddr) initUProc;
-    uProc.s_t9 = (memaddr) initUProc;
-    uProc.s_sp = KUSEG3FIRSTPAGE;
-    uProc.s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
+    uProc->s_asid = i << 6;
+    uProc->s_pc = (memaddr) initUProc;
+    uProc->s_t9 = (memaddr) initUProc;
+    uProc->s_sp = KUSEG3FIRSTPAGE;
+    uProc->s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
 
     /*create the process we've been working with, with a sys1 */
     SYSCALL(CREATEPROCESS, (int)&uProc, 0, 0);
@@ -92,7 +93,7 @@ void test(){
   }
 
   /* SEND THE PROCESS TO THE CHIAR!!! */
-  SYSCALL(TERMINATEPROCESS, 0, 0, 0)
+  SYSCALL(TERMINATEPROCESS, 0, 0, 0);
 
 }
 
@@ -110,8 +111,8 @@ HIDDEN void initUProc(){
   state_PTR tempState;
   
   /* get our disk and tape device we're on */
-  disk = (device_PTR) (INTDEVREG + DISKSTARTADDR + (DEVREGSIZE * EIGHTPERDEV) + (asid-1));
-  tape = (device_PTR) (INTDEVREG + TAPESTARTADDR + (DEVREGSIZE * EIGHTPERDEV));
+  disk = (device_t*) (INTDEVREG + ((DISKINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + (0 * DEVREGSIZE));
+  tape = (device_t*) (INTDEVREG + ((TAPEINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + ((asid-1) * DEVREGSIZE));
 
   /* go read our file */
   while(tape->d_data1 != EOT){

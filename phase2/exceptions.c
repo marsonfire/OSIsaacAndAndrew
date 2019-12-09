@@ -20,7 +20,7 @@ extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-extern int semd[MAGICNUM];       /* our 49 devices */
+extern int semd[SEMNUM];       /* our 49 devices */
 /* ===== End Initial Global Variables ===== */
 /* ===== Start Scheduler Global Variables ===== */
 extern cpu_t startTOD;           /* time the process started at */
@@ -183,7 +183,7 @@ HIDDEN void killEverything(pcb_PTR p){
     int* sem = p->p_semAdd;
     outBlocked(p);
     /* one less process that's waiting */
-    if(sem >= &(semd[0]) && sem <= &(semd[MAGICNUM - 1])){
+    if(sem >= &(semd[0]) && sem <= &(semd[SEMNUM - 1])){
       softBlockCount--;
     }
     else{
@@ -325,7 +325,7 @@ HIDDEN void sysCall6(state_PTR statep){
 HIDDEN void sysCall7(state_PTR statep){
   /* get the interval timer (last in the list of semaphores) */
   /* basically, do a sys4 call but with different values for the interval timer */
-  int* intervalTimerDev = (int*) &(semd[MAGICNUM-1]);
+  int* intervalTimerDev = (int*) &(semd[SEMNUM-1]);
   (*intervalTimerDev)--;
   if((*intervalTimerDev) < 0){
     insertBlocked(intervalTimerDev, currentProcess);

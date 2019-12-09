@@ -18,7 +18,7 @@ extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-extern int semd[MAGICNUM];       /* our 49 devices */
+extern int semd[SEMNUM];       /* our 49 devices */
 /* ===== End Initial Global Variables ===== */
 /* ===== Start Scheduler Global Variables ===== */
 extern cpu_t startTOD;           /* time the process started at */
@@ -70,7 +70,7 @@ void interruptHandler(){
     /* start by loading interval timer with 100 miliseconds */
     LDIT(INTERVALTIMER);
     /* get interval timer from the semaphore list */
-    sem = (int*) &(semd[MAGICNUM - 1]);
+    sem = (int*) &(semd[SEMNUM - 1]);
     while(headBlocked(sem) != NULL){
       /* get blocked process */
       pcb_PTR blocked = removeBlocked(sem);
