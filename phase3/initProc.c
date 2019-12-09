@@ -24,6 +24,9 @@ userProcData_t userProcs[MAXUPROC];
 int semTable[SEMNUM];
 
 HIDDEN void initUProc();
+unsigned int getAsid();
+
+extern void userSyscallHandler();
 
 
 /* Set up our OS page table, frame pool, and initialize the device semaphores
@@ -33,9 +36,9 @@ HIDDEN void initUProc();
 void test(){
   int i, j;
   segTable_t * segTable;
-  masterSem = 0;
-  swapSem = 1;
   state_PTR uProc;
+
+  masterSem = 0;
   
   /*set up OS page table*/
   ksegOS.header = ((PTEMAGICNO) << 24) |  KSEGNUMOS;
@@ -173,7 +176,7 @@ HIDDEN void initUProc(){
   /* interrupts enabled, user mode on, local timer on, VM off */
   uProc->s_status = ALLOFF | IECON | IEPON | IMASKON | KERPOFF | TEON | VMPOFF;
 
-  LDST(&uProc);
+  
 }
 
 /* Gets the asid of the process. */
