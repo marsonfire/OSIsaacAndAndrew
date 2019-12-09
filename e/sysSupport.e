@@ -1,5 +1,5 @@
-#ifndef sysSupport
-#define sysSupport
+#ifndef syssupport
+#define syssupport
 
 extern void userSyscallHandler();
 
