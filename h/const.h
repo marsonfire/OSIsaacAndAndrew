@@ -200,4 +200,6 @@
 
 #define PROGSTARTADDR 0x800000B0
 
+#define ASIDENTRYHI 0x00000FC0
+
 #endif

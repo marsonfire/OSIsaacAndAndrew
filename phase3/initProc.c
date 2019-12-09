@@ -93,6 +93,7 @@ HIDDEN void initUProc(){
   int i;
   device_PTR disk, tape;
   state_PTR uProc;
+  state_PTR tempState;
   
   /* get our disk and tape device we're on */
   disk = (device_PTR) (INTDEVREG + DISKSTARTADDR + (DEVREGSIZE * EIGHTPERDEV) + (asid-1));
@@ -110,39 +111,53 @@ HIDDEN void initUProc(){
   for(i = 0; i < 3; i++){
 
     /* get the process' state so we can see what trap we're on */
-    uProc = &(userProcs[asid-1].newTraps[i]);
+    tempState = &(userProcs[asid-1].newTraps[i]);
 
     /* set up the process' asid*/
-    uProc->s_asid = getENTRYHI();
+    tempState->s_asid = getENTRYHI();
 
     /* put the process into the right status so we can do the 3 sys 5s */
     /* interrupts enabled, kernal mode on, timer on, and virtual memroy on */
-    uProc->s_status = (ALLOFF | IECON | IEPON | IMASKON | KERPON | TEON | VMPON);
+    tempState->s_status = (ALLOFF | IECON | IEPON | IMASKON | KERPON | TEON | VMPON);
 
-    /* actually do the sys 5's */
+    /* depending on the trap, set up the uProc accordingly */
     switch(i){
 
       /* tlb trap */
       case(0):
-	
+	tempState->s_t9 = (memaddr) tlbManagementHandler;
+	tempState->s_pc = (memaddr) tlbManagementHandler;
 	break;
 
       /* prog trap */
       case(1):
-      
+	tempState->s_t9 = (memaddr) pgmTrapHandler;
+	tempState->s_pc = (memaddr) pgmTrapHandler;
         break;
 
       /* sys trap */
       case(2):
-
+	tempState->s_t9 = (memaddr) userSyscallHandler;
+	tempState->s_pc = (memaddr) userSyscallHandler;
         break;
     }
-        
+
+    /* set our sp and then call sys 5 */
+    tempState->s_sp = PROGSTARTADDR;
+    SYSCALL(SPECTRAPVEC, i, (int)&(userProcs[asid - 1].oldTraps[i]), (int)tempState);
   }
 
   /* get ready to execute the process */
-  uProc->s_pc = (memaddr)PROGSTARTADDR;
-  
+  uProc->s_pc = (memaddr) PROGSTARTADDR;
+  uProc->s_t9 = (memaddr) PROGSTARTADDR;
+  uProc->s_sp = (memaddr) KUSEG3FIRSTPAGE; /* also last page of kuseg2 */
+  uProc->s_asid = getENTRYHI();
+
+  /* reset our process' status so we can continue */
+  /* interrupts enabled, user mode on, local timer on, VM off */
+  uProc->s_status = ALLOFF | IECON | IEPON | IMASKON | KERPOFF | TEON | VMPOFF;
+
+  LDST(&uProc);
 }
 
 /* get the asid of the process */
@@ -150,7 +165,6 @@ unsigned int getAsid(){
 
   /* get the process' ID and return that */
   unsigned int asid = getENTRYHI();
-  asid = (asid & 0x00000FC0) >> 6;
+  asid = (asid & ASIDENTRYHI) >> 6;
   return asid;
-  
 }
