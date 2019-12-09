@@ -193,5 +193,6 @@
 /* bottom of first page of tape buffers, access to other pages by adding PAGESIZE */
 #define TAPESTARTADDR (KSEGSTARTADDR - (((DISKNUM + TAPENUM) * PAGESIZE)))
 
+#define KUSEG3FIRSTPAGE 0xC0000000
 
 #endif

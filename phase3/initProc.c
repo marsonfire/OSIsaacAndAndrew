@@ -70,20 +70,20 @@ void test(){
     uProc.s_asid = i << 6;
     uProc.s_pc = (memaddr) initUProc;
     uProc.s_t9 = (memaddr) initUProc;
-    uProc.s_sp = /* idk what to put here */
+    uProc.s_sp = KUSEG3FIRSTPAGE;
     uProc.s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
 
     /*create the process we've been working with, with a sys1 */
-    SYSCALL(CREATEPROCESS, (int)&uProc);
+    SYSCALL(CREATEPROCESS, (int)&uProc, 0, 0);
   }
 
   /* p the master sem */
   for(i=0; i < MAXUPROC; i++){
-    SYSCALL(PASSEREN, (int)&masterSem);
+    SYSCALL(PASSEREN, (int)&masterSem, 0, 0);
   }
 
   /* SEND THE PROCESS TO THE CHIAR!!! */
-  SYSCALL(TERMINATEPROCESS)
+  SYSCALL(TERMINATEPROCESS, 0, 0, 0)
 
 }
 
@@ -100,6 +100,8 @@ HIDDEN void initUProc(){
 }
 
 HIDDEN void findVictim(){
+  
+  /* code given to us in class */
   static int next = 0;
   return ((next + 1) % POOLSIZE);
 }
