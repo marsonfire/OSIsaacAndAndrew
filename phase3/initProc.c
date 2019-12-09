@@ -26,8 +26,6 @@ int semTable[SEMNUM];
 HIDDEN void initUProc();
 unsigned int getAsid();
 
-extern void userSyscallHandler();
-
 
 /* Set up our OS page table, frame pool, and initialize the device semaphores
    for mutual exclusion. Then, create our user processes to be run within
@@ -176,7 +174,7 @@ HIDDEN void initUProc(){
   /* interrupts enabled, user mode on, local timer on, VM off */
   uProc->s_status = ALLOFF | IECON | IEPON | IMASKON | KERPOFF | TEON | VMPOFF;
 
-  
+  LDST(&uProc);
 }
 
 /* Gets the asid of the process. */

@@ -63,7 +63,7 @@ void userSyscallHandler(){
   }
 }
 
-HIDEEN void sysCall9(){
+HIDDEN void sysCall9(){
 
 }
 
