@@ -188,11 +188,16 @@
 #define KSEGSTARTADDR (ROMPAGESTART + OSSIZE)
 #define TAPENUM 8
 #define DISKNUM 8
-/* bottom of first page of disk buffers, access to other pages by adding PAGESIZE */
-#define DISKSTARTADDR (KSEGSTARTADDR - (DISKNUM * PAGESIZE))
-/* bottom of first page of tape buffers, access to other pages by adding PAGESIZE */
-#define TAPESTARTADDR (KSEGSTARTADDR - (((DISKNUM + TAPENUM) * PAGESIZE)))
 
 #define KUSEG3FIRSTPAGE 0xC0000000
+
+#define EOT 0
+#define EOF 1
+#define EOB 2
+#define TS 3
+
+#define READBLK 3
+
+#define PROGSTARTADDR 0x800000B0
 
 #endif

@@ -16,7 +16,7 @@ userProcData_t userProcs[MAXUPROC];
 int semTable[SEMNUM];
 
 HIDDEN void stubby();
-HIDDEN void findVictim();
+HIDDEN void readFileIn();
 
 
 void test(){
@@ -49,11 +49,12 @@ void test(){
   
   /* create our processes*/
   for(i = 0; i < MAXUPROC; i++){
+
     /* find the user process that we want to work with and set up its kuseg2 */
     userProcs[i-1].kuSeg2.header = (PTEMAGICNO << 24) | KSEGNUM;
     for(j = 0; j < KSEGNUM; j++){
       userProcs[i-1].kuSeg2.ptes[j].entryHi = ((0x80000 + j) << 12) | (i << 6);
-	    userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTYON;
+      userProcs[i-1].kuSeg2.ptes[j].entryLow = ALLOFF | DIRTYON;
     }
     
     /* fix last entry's entryhi */
@@ -88,22 +89,68 @@ void test(){
 }
 
 HIDDEN void initUProc(){
-  unsigned int getENTRYHI();
+  unsigned int asid = getAsid();
   int i;
-  /* read from tape 
-  3 sys5's to set up new areas
-  1 each for 3 trap types 
-  */
-  for(i = 0; i < someNum; i++){
-    
-  }
-}
-
-HIDDEN void findVictim(){
+  device_PTR disk, tape;
+  state_PTR uProc;
   
-  /* code given to us in class */
-  static int next = 0;
-  return ((next + 1) % POOLSIZE);
+  /* get our disk and tape device we're on */
+  disk = (device_PTR) (INTDEVREG + DISKSTARTADDR + (DEVREGSIZE * EIGHTPERDEV) + (asid-1));
+  tape = (device_PTR) (INTDEVREG + TAPESTARTADDR + (DEVREGSIZE * EIGHTPERDEV));
+
+  /* go read our file */
+  while(tape->d_data1 != EOT){
+    tape->d_command = READBLK;
+
+    /* wait for everyting to be read in from the tape */
+    SYSCALL(WAITIO, TAPEINT, (asid - 1), 0);
+  }
+
+  /* set up and do our 3 sys 5's */
+  for(i = 0; i < 3; i++){
+
+    /* get the process' state so we can see what trap we're on */
+    uProc = &(userProcs[asid-1].newTraps[i]);
+
+    /* set up the process' asid*/
+    uProc->s_asid = getENTRYHI();
+
+    /* put the process into the right status so we can do the 3 sys 5s */
+    /* interrupts enabled, kernal mode on, timer on, and virtual memroy on */
+    uProc->s_status = (ALLOFF | IECON | IEPON | IMASKON | KERPON | TEON | VMPON);
+
+    /* actually do the sys 5's */
+    switch(i){
+
+      /* tlb trap */
+      case(0):
+	
+	break;
+
+      /* prog trap */
+      case(1):
+      
+        break;
+
+      /* sys trap */
+      case(2):
+
+        break;
+    }
+        
+  }
+
+  /* get ready to execute the process */
+  uProc->s_pc = (memaddr)PROGSTARTADDR;
+  
 }
 
+/* get the asid of the process */
+unsigned int getAsid(){
 
+  /* get the process' ID and return that */
+  unsigned int asid = getENTRYHI();
+  asid = (asid & 0x00000FC0) >> 6;
+  return asid;
+  
+}
