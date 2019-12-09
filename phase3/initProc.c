@@ -1,4 +1,10 @@
-/* initProc.c */
+/* initProc.c
+   Virtual memory is set up for the Kaya OS. Segment and page tables are
+   created and set up in order to get virtual memory working. Our device
+   semaphores are created initialized to allow for mutual exclusion.
+   User processes are created and initialized to be executed to run
+   on the OS. 
+*/
 
 #include "../h/const.h"
 #include "../h/types.h"
@@ -15,10 +21,12 @@ userProcData_t userProcs[MAXUPROC];
 /* init our for 49 sema4s */
 int semTable[SEMNUM];
 
-HIDDEN void stubby();
-HIDDEN void readFileIn();
+HIDDEN void initUProc();
 
-
+/* Set up our OS page table, frame pool, and initialize the device semaphores
+   for mutual exclusion. Then, create our user processes to be run within
+   initUProc.
+ */
 void test(){
   int i, j;
   state_PTR state;
@@ -88,6 +96,12 @@ void test(){
 
 }
 
+/* Takes the created process and reads the tape data onto the disk. Then,
+   does 3 syscall 5s for the trap types and the appropriate handler for the
+   sys trap will be called, (tlbManagementHandler, pgmTraphandler, or
+   userSyscallhandler). After this, we set the user process up to be started
+   and load the OS with it 
+*/
 HIDDEN void initUProc(){
   unsigned int asid = getAsid();
   int i;
@@ -160,7 +174,7 @@ HIDDEN void initUProc(){
   LDST(&uProc);
 }
 
-/* get the asid of the process */
+/* Gets the asid of the process. */
 unsigned int getAsid(){
 
   /* get the process' ID and return that */
