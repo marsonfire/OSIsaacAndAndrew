@@ -27,15 +27,13 @@ void userSyscallHandler(){
   request = oldState -> s_a0;
   
   switch(request){
-<<<<<<< HEAD
-  case READTERM:
-    sysCall9(oldState);
-    break;
-=======
+    case READTERM:
+      sysCall9(oldState);
+      break;
+    
     case READTERM:
       sysCall9();
       break;
->>>>>>> 9f10dda213ed574e936ebf1cae78a3ceac2d2a08
 
     case WRITETERM:
       sysCall10();
