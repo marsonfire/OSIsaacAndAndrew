@@ -4,7 +4,7 @@
 #include "/usr/local/include/umps2/umps/libumps.e"
 
 
-HIDDEN void sysCall9(state_PTR requester);
+HIDDEN void sysCall9();
 HIDDEN void sysCall10();
 HIDDEN void sysCall11();
 HIDDEN void sysCall12();
@@ -25,12 +25,7 @@ void userSyscallHandler(){
   oldState = (state_PTR)SYSCALLBREAKOLD;
   oldState -> s_pc + 4;
   request = oldState -> s_a0;
-  
   switch(request){
-    case READTERM:
-      sysCall9(oldState);
-      break;
-    
     case READTERM:
       sysCall9();
       break;
@@ -73,16 +68,24 @@ void userSyscallHandler(){
   }
 }
 
-<<<<<<< HEAD
-HIDEEN void sysCall9(state_PTR requester){
-=======
 HIDDEN void sysCall9(){
->>>>>>> 9f10dda213ed574e936ebf1cae78a3ceac2d2a08
 
 }
 
 HIDDEN void sysCall10() {
-  
+  char* message =
+    devregtr * base = (devregtr *) (TERM0ADDR);
+  devregtr status;
+
+  SYSCALL(PASSERN, (int)&term_mut, 0, 0);/* P(term_mut) */
+  while (*s != EOS) {
+    *(base + 3) = PRINTCHR | (((devregtr) *s) << BYTELEN);
+    status = SYSCALL(WAITIO, TERMINT, 0, 0);
+    if ((status & TERMSTATMASK) != RECVD)
+      PANIC();
+    s++;
+  }
+  SYSCALL(VERHOGEN, (int)&term_mut, 0, 0);/* V(term_mut) */
 }
 
 HIDDEN void sysCall11(){
