@@ -63,16 +63,10 @@ void userSyscallHandler(){
       sysCall16();
       break;
 
-<<<<<<< HEAD
-  case GETTOD:
-    sysCall17(oldState);
-    break;
-=======
     case GETTOD:
-      sysCall17();
+      sysCall17(oldState);
       break;
->>>>>>> 9f10dda213ed574e936ebf1cae78a3ceac2d2a08
-
+    
     case TERMINATE:
       sysCall18();
       break;
@@ -116,10 +110,16 @@ HIDDEN void sysCall16(){
 }
 
 HIDDEN void sysCall17(state_PTR requester){
-  cpu_t TOD;                /* allocates cpu*/
-  STCK(TOD);             
-  requester -> s_v0 = TOD;  /*stores time off in v0*/
-  LDST(requester);          /*back to the future*/
+
+  /* allocates cpu*/
+  cpu_t TOD;                
+  STCK(TOD);
+
+  /*stores time off in v0*/
+  requester -> s_v0 = TOD;
+
+  /*back to the future*/
+  LDST(requester);
 }
 
 HIDDEN void sysCall18(){
