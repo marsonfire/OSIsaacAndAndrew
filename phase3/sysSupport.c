@@ -4,7 +4,7 @@
 #include "/usr/local/include/umps2/umps/libumps.e"
 
 
-HIDDEN void sysCall9();
+HIDDEN void sysCall9(state_PTR requester);
 HIDDEN void sysCall10();
 HIDDEN void sysCall11();
 HIDDEN void sysCall12();
@@ -12,17 +12,23 @@ HIDDEN void sysCall13();
 HIDDEN void sysCall14();
 HIDDEN void sysCall15();
 HIDDEN void sysCall16();
-HIDDEN void sysCall17();
+HIDDEN void sysCall17(state_PTR requester);
 HIDDEN void sysCall18();
 
 
 void userSyscallHandler(){
   /*codehere*/
   int request;
+  state_PTR oldState;
 
+  /*Stores off the old state for later use, incrememnts it*/
+  oldState = (state_PTR)SYSCALLBREAKOLD;
+  oldState -> s_pc + 4;
+  request = oldState -> s_a0;
+  
   switch(request){
   case READTERM:
-    sysCall9();
+    sysCall9(oldState);
     break;
 
   case WRITETERM:
@@ -54,7 +60,7 @@ void userSyscallHandler(){
     break;
 
   case GETTOD:
-    sysCall17();
+    sysCall17(oldState);
     break;
 
   case TERMINATE:
@@ -62,7 +68,7 @@ void userSyscallHandler(){
     break;
 }
 
-HIDEEN void sysCall9(){
+HIDEEN void sysCall9(state_PTR requester){
 
 }
 
@@ -107,8 +113,11 @@ HIDDEN void sysCall16(){
 
 }
 
-HIDDEN void sysCall17(){
-
+HIDDEN void sysCall17(state_PTR requester){
+  cpu_t TOD;                /* allocates cpu*/
+  STCK(TOD);             
+  requester -> s_v0 = TOD;  /*stores time off in v0*/
+  LDST(requester);          /*back to the future*/
 }
 
 HIDDEN void sysCall18(){
