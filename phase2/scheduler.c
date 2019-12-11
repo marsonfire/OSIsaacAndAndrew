@@ -24,7 +24,7 @@ extern int processCount;         /* number of processes in the system */
 extern int softBlockCount;       /* number of processes blocked and waiting for an interrupt */
 extern pcb_PTR currentProcess;   /* self explanatory... I hope... */
 extern pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-extern int semd[MAGICNUM];		 /* array of our devices */
+extern int semd[SEMNUM];		 /* array of our devices */
 /* ===== End Initial Global Variables ===== */
 
 

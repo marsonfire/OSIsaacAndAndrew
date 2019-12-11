@@ -1,3 +1,5 @@
+
+
 #ifndef TYPES
 #define TYPES
 
@@ -18,7 +20,7 @@ typedef struct {
 	unsigned int d_command;
 	unsigned int d_data0;
 	unsigned int d_data1;
-} device_t;
+} device_t, *device_PTR;
 
 #define t_recv_status		d_status
 #define t_recv_command		d_command
@@ -123,16 +125,16 @@ typedef struct pteEntry_t {
 
 typedef struct pgTable_t {
 	int header;
-	pteEntry_t ptes[KSEGNUM];
+	pteEntry_t ptes[32];
 }pgTable_t;
 
-typedef struct pgTableOS_T{
+typedef struct pgTableOS_t{
 	int header;
-	pteEntry_t ptes[KSEGNUMOS]
-}pgTableOS_T;
+        pteEntry_t ptes[64];
+}pgTableOS_t;
 
 typedef struct segTable_t {
-	pgTableOS_T *ksegOS;
+	pgTableOS_t *ksegOS;
 	pgTable_t *kuseg2;
 	pgTable_t *kuseg3;
 }segTable_t;

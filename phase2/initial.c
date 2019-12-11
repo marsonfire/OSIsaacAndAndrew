@@ -19,7 +19,7 @@ int processCount;         /* number of processes in the system */
 int softBlockCount;       /* number of processes blocked and waiting for an interrupt */    
 pcb_PTR currentProcess;   /* self explanatory... I hope... */
 pcb_PTR readyQ;           /* tail pointer to queue of procblks representing processes ready and waiting for execution */
-int semd[MAGICNUM];       /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
+int semd[SEMNUM];       /* how we get the devices, MAGICNUM was mentioned in class and is in consts.h as 49 */
 /* ===== End Global Variables ===== */
 
 /* ===== Start Main() =====*/
@@ -92,7 +92,7 @@ int main(){
   readyQ = mkEmptyProcQ();
 
   /* need to initalize and set each device to 0 */
-  for(i = 0; i < MAGICNUM; i++){
+  for(i = 0; i < SEMNUM; i++){
     semd[i] = 0;
   }
    

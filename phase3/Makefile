@@ -5,7 +5,7 @@ INCDIR = /usr/local/include/umps2/umps
 SUPDIR = /usr/local/share/umps2
 LIBDIR = /usr/local/lib/umps2
 
-DEFS = ../h/const.h ../h/types.h ../e/pcb.e ../e/asl.e ../e/initial.e ../e/interrupts.e ../e/scheduler.e ../e/exceptions.e ../e/adl.e ../e/initProc.e ../e/vmIOsupport.e ../e/avsl.e $(INCDIR)/libumps.e Makefile
+DEFS = ../h/const.h ../h/types.h ../e/pcb.e ../e/asl.e ../e/initial.e ../e/interrupts.e ../e/scheduler.e ../e/exceptions.e ../e/adl.e ../e/initProc.e ../e/vmIOsupport.e ../e/avsl.e ../e/sysSupport.e  $(INCDIR)/libumps.e Makefile
 
 TDEFS = ./testers/print.e ./testers/h/tconst.h ../h/const.h ../h/types.h $(INCDIR)/libumps.e Makefile
 
@@ -19,7 +19,7 @@ EF = umps2-elf2umps
 UDEV = umps2-mkdev
 
 #main target
-all: kernel.core.umps strConcatTape.umps drawTape.umps readTape.umps fibTape.umps swapTape.umps todTape.umps diskTape.umps pvATape.umps pvBTape.umps printerTape.umps disk0.umps disk1.umps
+all: kernel.core.umps readTape.umps fibTape.umps swapTape.umps todTape.umps diskTape.umps pvATape.umps pvBTape.umps printerTape.umps disk0.umps disk1.umps
 
 disk0.umps:
 	$(UDEV) -d disk0.umps
@@ -130,8 +130,11 @@ print.o: ./testers/print.c $(TDEFS)
 kernel.core.umps: kernel
 	$(EF) -k kernel
 
-kernel: initial.o interrupts.o scheduler.o exceptions.o asl.o pcb.o adl.o avsl.o vmIOsupport.o initProc.o
-	$(LD) $(LDCOREFLAGS) $(LIBDIR)/crtso.o initial.o interrupts.o scheduler.o exceptions.o asl.o pcb.o adl.o avsl.o vmIOsupport.o initProc.o $(LIBDIR)/libumps.o -o kernel
+kernel: initial.o interrupts.o scheduler.o exceptions.o asl.o pcb.o adl.o avsl.o vmIOsupport.o initProc.o sysSupport.o
+	$(LD) $(LDCOREFLAGS) $(LIBDIR)/crtso.o initial.o interrupts.o scheduler.o exceptions.o asl.o pcb.o adl.o avsl.o vmIOsupport.o initProc.o sysSupport.o $(LIBDIR)/libumps.o -o kernel
+
+sysSupport.o: sysSupport.c $(DEFS)
+	$(CC) $(CFLAGS) sysSupport.c
 
 initProc.o: initProc.c $(DEFS)
 	$(CC) $(CFLAGS) initProc.c

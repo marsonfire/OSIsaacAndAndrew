@@ -177,21 +177,43 @@
 #define KSEGNUMOS 64
 #define THREETRAPS 3
 
-/* you've been a dirty dirty girl havent you */
 #define DIRTY 0x00000400
 #define VALID 0x00000200
 #define GLOBAL 0x00000100
 
 #define SEGSTARTADDRESS 0x20000500
 
-#define OSSIZE(KSEGOSNUM * PAGESIZE)
+#define OSSIZE (KSEGOSNUM * PAGESIZE)
 #define KSEGSTARTADDR (ROMPAGESTART + OSSIZE)
 #define TAPENUM 8
 #define DISKNUM 8
-/* bottom of first page of disk buffers, access to other pages by adding PAGESIZE */
-#define DISKSTARTADDR (KSEGSTARTADDR - (DISKNUM * PAGESIZE))
-/* bottom of first page of tape buffers, access to other pages by adding PAGESIZE */
-#define TAPESTARTADDR (KSEGSTARTADDR - (((DISKNUM + TAPENUM) * PAGESIZE)))
 
+#define KUSEG3FIRSTPAGE 0xC0000000
+
+#define EOT 0
+#define EOF 1
+#define EOB 2
+#define TS 3
+
+#define READBLK 3
+
+#define PROGSTARTADDR 0x800000B0
+
+#define ASIDENTRYHI 0x00000FC0
+
+#define CREATEPROCESS 1
+#define TERMINATEPROCESS 2
+
+#define PASSEREN 4
+#define READTERM 9
+#define WRITETERM 10
+#define VVIRTSEMA4 11
+#define PVIRTSEMA4 12
+#define DELAY 13
+#define DISKPUT 14
+#define DISKGET 15
+#define WRITEPRINTER 16
+#define GETTOD 17
+#define TERMINATE 18
 
 #endif

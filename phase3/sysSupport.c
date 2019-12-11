@@ -27,66 +27,70 @@ void userSyscallHandler(){
   request = oldState -> s_a0;
   
   switch(request){
+<<<<<<< HEAD
   case READTERM:
     sysCall9(oldState);
     break;
+=======
+    case READTERM:
+      sysCall9();
+      break;
+>>>>>>> 9f10dda213ed574e936ebf1cae78a3ceac2d2a08
 
-  case WRITETERM:
-   sysCall10();
-   break;
+    case WRITETERM:
+      sysCall10();
+      break;
    
-  case VVIRTSEMA4:
-    sysCall11();
-    break;
+    case VVIRTSEMA4:
+      sysCall11();
+      break;
 
-  case PVIRTSEMA4:
-    sysCall12();
-    break;
+    case PVIRTSEMA4:
+      sysCall12();
+      break;
 
-  case DELAY:
-    sysCall13();
-    break;
+    case DELAY:
+      sysCall13();
+      break;
 
-  case DISKPUT:
-    sysCall14();
-    break;
+    case DISKPUT:
+      sysCall14();
+      break;
 
-  case DISKGET:
-    syscall15();
-    break;
+    case DISKGET:
+      sysCall15();
+      break;
 
-  case WRITEPRINTER:
-    sysCall16();
-    break;
+    case WRITEPRINTER:
+      sysCall16();
+      break;
 
+<<<<<<< HEAD
   case GETTOD:
     sysCall17(oldState);
     break;
+=======
+    case GETTOD:
+      sysCall17();
+      break;
+>>>>>>> 9f10dda213ed574e936ebf1cae78a3ceac2d2a08
 
-  case TERMINATE:
-    sysCall18();
-    break;
+    case TERMINATE:
+      sysCall18();
+      break;
+  }
 }
 
+<<<<<<< HEAD
 HIDEEN void sysCall9(state_PTR requester){
+=======
+HIDDEN void sysCall9(){
+>>>>>>> 9f10dda213ed574e936ebf1cae78a3ceac2d2a08
 
 }
 
 HIDDEN void sysCall10() {
   
-  char* message = 
-  devregtr * base = (devregtr *) (TERM0ADDR);
-  devregtr status;
-
-  SYSCALL(PASSERN, (int)&term_mut, 0, 0);/* P(term_mut) */
-  while (*s != EOS) {
-    *(base + 3) = PRINTCHR | (((devregtr) *s) << BYTELEN);
-    status = SYSCALL(WAITIO, TERMINT, 0, 0);
-    if ((status & TERMSTATMASK) != RECVD)
-      PANIC();
-    s++;
-  }
-  SYSCALL(VERHOGEN, (int)&term_mut, 0, 0);/* V(term_mut) */
 }
 
 HIDDEN void sysCall11(){
