@@ -127,7 +127,7 @@ HIDDEN void initUProc(){
   /* set up and do our 3 sys 5's */
   for(i = 0; i < 3; i++){
 
-    /* get the process' state so we can see what trap we're on */
+    /* get the process' state and get what trap we're on */
     tempState = &(userProcs[asid-1].newTraps[i]);
 
     /* set up the process' asid*/
@@ -174,7 +174,7 @@ HIDDEN void initUProc(){
   /* interrupts enabled, user mode on, local timer on, VM off */
   uProc->s_status = ALLOFF | IECON | IEPON | IMASKON | KERPOFF | TEON | VMPOFF;
 
-  LDST(&uProc);
+  LDST(uProc);
 }
 
 /* Gets the asid of the process. */

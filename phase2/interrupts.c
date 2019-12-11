@@ -61,7 +61,7 @@ void interruptHandler(){
     PANIC();
   }
   /* if this runs, a process' clock has run out and we will exit the interrupHandler and go back to the scheduler */
-  else if((cause & SECOND) != 0){
+  else if((cause & SEC) != 0){
     /* line 1 - processor local timer */
     done(startTime);
   }
@@ -220,7 +220,7 @@ HIDDEN int getDevice(unsigned int* bitMap){
   if((interruptCause & FIRST) != 0){
     return 0;
   }
-  else if((interruptCause & SECOND) != 0){
+  else if((interruptCause & SEC) != 0){
     return 1;
   }
   else if((interruptCause & THIRD) != 0){

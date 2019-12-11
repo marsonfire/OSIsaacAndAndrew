@@ -9,4 +9,4 @@ extern int swapSem, masterSem;
 extern userProcData_t userProcs[MAXUPROC];
 extern int semTable[SEMNUM];
 
-#endif initproc
+#endif

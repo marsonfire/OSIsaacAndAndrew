@@ -52,7 +52,7 @@
 
 /* device line number addresses */
 #define FIRST 0x00000001
-#define SECOND 0x00000002
+#define SEC 0x00000002
 #define THIRD 0x00000004
 #define FOURTH 0x00000008
 #define FIFTH 0x00000010
