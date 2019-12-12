@@ -1,3 +1,12 @@
+/* ============= sysSupport.c ==============
+ * sysSupport handles user I/O interrupts that request
+ * resources given through virtual memory. All requests
+ * are sent through the sysCall handler(calls 9 - 18).
+ * Currently, only syscalls 10 and 17 active for basic 
+ * VM operations. All active calls modify and return 
+ * the OS to the last state.
+ */
+
 #include "../h/const.h"
 #include "../h/types.h"
 #include "../e/initProc.e"
@@ -16,8 +25,13 @@ HIDDEN void sysCall17(state_PTR requester);
 HIDDEN void sysCall18();
 
 
+/* ========== userSyscallHandler() ========== 
+ * All syscalls are processed through the handler, 
+ * which redirect to sysCalls 9 through 18. Takes 
+ * no arguments, but stores and returns the OS's 
+ * state.
+ */
 void userSyscallHandler(){
-  /*codehere*/
   int request;
   state_PTR oldState;
 
@@ -69,9 +83,14 @@ void userSyscallHandler(){
 }
 
 HIDDEN void sysCall9(){
-
+  /* To be continued */
 }
 
+/* ============= sysCall10() =============
+ * Write to Terminal. Suspends other operations
+ * and outputs a string to the designated terminal.
+ * Currently, will only work with terminal 0.
+ */
 /* only attempts to work with terminal 0 */
 HIDDEN void sysCall10(char *msg) {
   char* s = msg;
@@ -92,32 +111,38 @@ HIDDEN void sysCall10(char *msg) {
 }
 
 HIDDEN void sysCall11(){
-
+  /* To be continued */
 }
 
 HIDDEN void sysCall12(){
-
+  /* To be continued */
 }
 
 HIDDEN void sysCall13(){
-
+  /* To be continued */
 }
 
 HIDDEN void sysCall14(){
-
+  /* To be continued */
 }
 
 HIDDEN void sysCall15(){
-
+  /* To be continued */
 }
 
 HIDDEN void sysCall16(){
-
+  /* To be continued */
 }
 
+/* ============= sysCall17(state) =============
+ * Gets the time of day. Gets the amount of microseconds
+ * from the last sustem reset, and places it in the v0 
+ * register. Takes in the 'current' state from the handler
+ * and returns that state with ToD.
+ */
 HIDDEN void sysCall17(state_PTR requester){
 
-  /* allocates cpu*/
+  /* allocates cpu with current time*/
   cpu_t TOD;                
   STCK(TOD);
 
@@ -129,5 +154,5 @@ HIDDEN void sysCall17(state_PTR requester){
 }
 
 HIDDEN void sysCall18(){
-
+  /* To be continued */
 }
