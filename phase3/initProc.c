@@ -26,10 +26,6 @@ int semTable[SEMNUM];
 HIDDEN void initUProc();
 unsigned int getAsid();
 
-debug(int a){
-  return a;
-}
-
 /* Set up our OS page table, frame pool, and initialize the device semaphores
    for mutual exclusion. Then, create our user processes to be run within
    initUProc.
