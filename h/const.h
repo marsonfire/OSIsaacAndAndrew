@@ -201,19 +201,8 @@
 
 #define ASIDENTRYHI 0x00000FC0
 
-#define CREATEPROCESS 1
-#define TERMINATEPROCESS 2
-
-#define PASSEREN 4
-#define READTERM 9
-#define WRITETERM 10
-#define VVIRTSEMA4 11
-#define PVIRTSEMA4 12
-#define DELAY 13
-#define DISKPUT 14
-#define DISKGET 15
-#define WRITEPRINTER 16
-#define GETTOD 17
-#define TERMINATE 18
+#define TERM0ADDR 0x10000250
+#define BYTE 8
+#define RECVD 5
 
 #endif

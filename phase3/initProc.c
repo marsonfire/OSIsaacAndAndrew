@@ -86,16 +86,16 @@ void test(){
     uProc->s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
 
     /*create the process we've been working with, with a sys1 */
-    SYSCALL(CREATEPROCESS, (int)&uProc, 0, 0);
+    SYSCALL(CREATEPROC, (int)&uProc, 0, 0);
   }
 
   /* p the master sem */
   for(i=0; i < MAXUPROC; i++){
-    SYSCALL(PASSEREN, (int)&masterSem, 0, 0);
+    SYSCALL(PASSERN, (int)&masterSem, 0, 0);
   }
 
   /* SEND THE PROCESS TO THE CHIAR!!! */
-  SYSCALL(TERMINATEPROCESS, 0, 0, 0);
+  SYSCALL(TERMINATEPROC, 0, 0, 0);
 
 }
 

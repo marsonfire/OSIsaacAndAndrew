@@ -72,20 +72,23 @@ HIDDEN void sysCall9(){
 
 }
 
-HIDDEN void sysCall10() {
-  char* message =
-    devregtr * base = (devregtr *) (TERM0ADDR);
-  devregtr status;
+/* only attempts to work with terminal 0 */
+HIDDEN void sysCall10(char *msg) {
+  char* s = msg;
+  unsigned int * base = (unsigned int*) TERM0ADDR;
+  unsigned int status;
 
-  SYSCALL(PASSERN, (int)&term_mut, 0, 0);/* P(term_mut) */
+  
+  SYSCALL(PASSERN, 1, 0, 0);
   while (*s != EOS) {
-    *(base + 3) = PRINTCHR | (((devregtr) *s) << BYTELEN);
+    *(base + 3) = 2 | (((unsigned int)  s) << BYTE);
     status = SYSCALL(WAITIO, TERMINT, 0, 0);
-    if ((status & TERMSTATMASK) != RECVD)
+    if ((status & 0xFF) != RECVD)
       PANIC();
     s++;
   }
-  SYSCALL(VERHOGEN, (int)&term_mut, 0, 0);/* V(term_mut) */
+  
+  SYSCALL(VERHOGEN, 1, 0, 0);
 }
 
 HIDDEN void sysCall11(){
