@@ -91,7 +91,6 @@ HIDDEN void sysCall9(){
  * and outputs a string to the designated terminal.
  * Currently, will only work with terminal 0.
  */
-/* only attempts to work with terminal 0 */
 HIDDEN void sysCall10(char *msg) {
   char* s = msg;
   unsigned int * base = (unsigned int*) TERM0ADDR;

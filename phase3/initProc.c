@@ -26,6 +26,9 @@ int semTable[SEMNUM];
 HIDDEN void initUProc();
 unsigned int getAsid();
 
+debug(int a){
+  return a;
+}
 
 /* Set up our OS page table, frame pool, and initialize the device semaphores
    for mutual exclusion. Then, create our user processes to be run within
@@ -75,14 +78,16 @@ void test(){
     userProcs[i-1].sem = 0;
 
     /* set the appropriate entries in the global segment table */
-    segTable->ksegOS = (&ksegOS);
-    segTable->kuseg2 = (&(userProcs[i-1].kuSeg2));
+    segTable->ksegOS = &ksegOS;  
+    segTable->kuseg2 = &(userProcs[i-1].kuSeg2);
 
     /* u-proc initialization, see Kaya 4.7 */
-    uProc->s_asid = i << 6;
+    uProc->s_asid = i << 6;    
     uProc->s_pc = (memaddr) initUProc;
     uProc->s_t9 = (memaddr) initUProc;
+    debug(3);
     uProc->s_sp = KUSEG3FIRSTPAGE;
+    debug(4);
     uProc->s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
 
     /*create the process we've been working with, with a sys1 */
