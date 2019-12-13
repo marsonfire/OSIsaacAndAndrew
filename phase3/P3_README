@@ -3,7 +3,8 @@ By Andrew and Isaac
 Status of Files:
 initProc.c    - Compiles and is currently in the debugging stage, something wrong with the individual uproc initialization.
 pager.c       - Currently in process of being written.
-sysSupport    - Compiles and is currently in the debugging stage.
+sysSupport    - Compiles and is currently in the debugging stage. Syscalls 10 and 17 have been written and compile
+                for baic VM functions, and the userSyscallHandler is written and compiles.
 test files    - All written and should be running correctly.
 
 Currently, the machine will run and output system halted in terminal 0, more than likely due to some fault 
