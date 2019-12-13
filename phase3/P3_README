@@ -1,0 +1,12 @@
+By Andrew and Isaac
+
+Status of Files:
+initProc.c    - Compiles and is currently in the debugging stage, something wrong with the individual uproc initialization.
+pager.c       - Currently in process of being written.
+sysSupport    - Compiles and is currently in the debugging stage.
+test files    - All written and should be running correctly.
+
+Currently, the machine will run and output system halted in terminal 0, more than likely due to some fault 
+in the user process initialization. We get to our debug(2) marker in initProc.c before the system crashes. 
+The next file to work on once initProc would be done is the pager file to handle any page faults in the
+system.
