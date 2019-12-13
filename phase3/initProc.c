@@ -25,6 +25,11 @@ int semTable[SEMNUM];
 
 HIDDEN void initUProc();
 unsigned int getAsid();
+HIDDEN void diskRead(int * sem, int diskNum, int readOrWrite);
+
+void debug(int a){
+  return;
+}
 
 /* Set up our OS page table, frame pool, and initialize the device semaphores
    for mutual exclusion. Then, create our user processes to be run within
@@ -73,20 +78,22 @@ void test(){
     /* set the sem for the uProc we're on */
     userProcs[i-1].sem = 0;
 
+    debug(1);
+    
     /* set the appropriate entries in the global segment table */
     segTable = (segTable_t*) (SEGSTARTADDR + (i * SEGWIDTH));
     segTable->ksegOS = &ksegOS;  
     segTable->kuseg2 = &(userProcs[i-1].kuSeg2);
 
+    debug(2);
+    
     /* u-proc initialization, see Kaya 4.7 */
     uProc->s_asid = i << 6;    
     uProc->s_pc = (memaddr) initUProc;
     uProc->s_t9 = (memaddr) initUProc;
-    debug(3);
     uProc->s_sp = KUSEG3FIRSTPAGE;
-    debug(4);
     uProc->s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
-
+    debug(3);
     /*create the process we've been working with, with a sys1 */
     SYSCALL(CREATEPROC, (int)&uProc, 0, 0);
   }
@@ -113,6 +120,8 @@ HIDDEN void initUProc(){
   device_PTR disk, tape;
   state_PTR uProc;
   state_PTR tempState;
+
+  debug(4);
   
   /* get our disk and tape device we're on */
   disk = (device_t*) (INTDEVREG + ((DISKINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + (0 * DEVREGSIZE));
