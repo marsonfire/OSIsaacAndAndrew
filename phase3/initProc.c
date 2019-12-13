@@ -74,6 +74,7 @@ void test(){
     userProcs[i-1].sem = 0;
 
     /* set the appropriate entries in the global segment table */
+    segTable = (segTable_t*) (SEGSTARTADDR + (i * SEGWIDTH));
     segTable->ksegOS = &ksegOS;  
     segTable->kuseg2 = &(userProcs[i-1].kuSeg2);
 
@@ -119,10 +120,12 @@ HIDDEN void initUProc(){
 
   /* go read our file */
   while(tape->d_data1 != EOT){
-    tape->d_command = READBLK;
 
-    /* wait for everyting to be read in from the tape */
-    SYSCALL(WAITIO, TAPEINT, (asid - 1), 0);
+    /* WAIT while reading in from the tape and going to the disk to write */
+    SYSCALL(WAITIO, TAPEINT, asid-1, 0);
+
+    tape->d_command = READBLK;
+    diskRead(asid-1, tape->d_data1, WRITEBLK);
   }
 
   /* set up and do our 3 sys 5's */
@@ -186,3 +189,31 @@ unsigned int getAsid(){
   asid = (asid & ASIDENTRYHI) >> 6;
   return asid;
 }
+
+/* Performs a read or a write for the disk*/
+/*  doesn't work */
+void diskRead(int * sem, int diskNum, int readOrWrite){
+
+  /* go get the address of the disk */
+  device_PTR disk = (device_PTR) (INTDEVREG + ((DISKINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + (diskNum * DEVREGSIZE));
+
+  /* WAIT while we mess with the disk */
+  SYSCALL(PASSERN, (int) sem, 0,0);
+
+  /* turn interrupts off */
+  setSTATUS(getSTATUS() | IEPOFF | IMASKOFF);
+
+  /* not sure exactly how to read from the disk, but we'd do it here */
+  /* confusing and awesome code that does a read or write to the disk done here: 
+
+     
+   it's there, you just have to look really hard */
+
+  /* enable interrupts again now that we're done with the disk*/
+  setSTATUS(getSTATUS() | IEPON | IMASKON);
+
+  /* SIGNAL that we're done with the disk */
+  SYSCALL(VERHOGEN, (int)sem, 0, 0);
+  
+}
+ 

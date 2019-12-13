@@ -196,6 +196,7 @@
 #define TS 3
 
 #define READBLK 3
+#define WRITEBLK 4
 
 #define PROGSTARTADDR 0x800000B0
 
@@ -204,5 +205,8 @@
 #define TERM0ADDR 0x10000250
 #define BYTE 8
 #define RECVD 5
+
+#define SEGSTARTADDR 0x20000500
+#define SEGWIDTH 12
 
 #endif
