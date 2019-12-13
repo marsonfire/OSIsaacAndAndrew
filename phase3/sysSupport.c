@@ -142,11 +142,11 @@ HIDDEN void sysCall16(){
 HIDDEN void sysCall17(state_PTR requester){
 
   /* allocates cpu with current time*/
-  cpu_t TOD;                
-  STCK(TOD);
+  cpu_t todClock;                
+  STCK(todClock);
 
   /*stores time off in v0*/
-  requester -> s_v0 = TOD;
+  requester -> s_v0 = todClock;
 
   /*back to the future*/
   LDST(requester);

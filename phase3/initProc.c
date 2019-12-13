@@ -25,7 +25,7 @@ int semTable[SEMNUM];
 
 HIDDEN void initUProc();
 unsigned int getAsid();
-HIDDEN void diskRead(int * sem, int diskNum, int readOrWrite);
+HIDDEN void diskOp(int * sem, int diskNum, int readOrWrite);
 
 void debug(int a){
   return;
@@ -77,24 +77,24 @@ void test(){
 
     /* set the sem for the uProc we're on */
     userProcs[i-1].sem = 0;
-
-    debug(1);
     
     /* set the appropriate entries in the global segment table */
     segTable = (segTable_t*) (SEGSTARTADDR + (i * SEGWIDTH));
     segTable->ksegOS = &ksegOS;  
     segTable->kuseg2 = &(userProcs[i-1].kuSeg2);
 
-    debug(2);
+    
+    debug(1);
     
     /* u-proc initialization, see Kaya 4.7 */
-    uProc->s_asid = i << 6;    
+    uProc->s_asid = (unsigned int) (i - 1); /* you know, i really didn't think this is what would defeat me */
+    debug(2);
     uProc->s_pc = (memaddr) initUProc;
     uProc->s_t9 = (memaddr) initUProc;
     uProc->s_sp = KUSEG3FIRSTPAGE;
     uProc->s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
-    debug(3);
     /*create the process we've been working with, with a sys1 */
+    debug(2);
     SYSCALL(CREATEPROC, (int)&uProc, 0, 0);
   }
 
@@ -123,19 +123,10 @@ HIDDEN void initUProc(){
 
   debug(4);
   
-  /* get our disk and tape device we're on */
+  /* get our disk and tape device we're on 
   disk = (device_t*) (INTDEVREG + ((DISKINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + (0 * DEVREGSIZE));
-  tape = (device_t*) (INTDEVREG + ((TAPEINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + ((asid-1) * DEVREGSIZE));
-
-  /* go read our file */
-  while(tape->d_data1 != EOT){
-
-    /* WAIT while reading in from the tape and going to the disk to write */
-    SYSCALL(WAITIO, TAPEINT, asid-1, 0);
-
-    tape->d_command = READBLK;
-    diskRead(asid-1, tape->d_data1, WRITEBLK);
-  }
+  */
+  readTape(asid);
 
   /* set up and do our 3 sys 5's */
   for(i = 0; i < 3; i++){
@@ -199,9 +190,31 @@ unsigned int getAsid(){
   return asid;
 }
 
-/* Performs a read or a write for the disk*/
-/*  doesn't work */
-void diskRead(int * sem, int diskNum, int readOrWrite){
+/* Reads the tape until we have reached the end of the tape or the end of
+   file and and makes a call to write that file to the disk. */
+/* may not work */
+HIDDEN void readTape(unsigned int asid){
+  device_PTR tape;
+  
+  /* get our tape device that we'll be reading from */
+  tape = (device_PTR) (INTDEVREG + ((TAPEINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + ((asid-1) * DEVREGSIZE));
+
+  /* go read our tape */
+  while(tape->d_data1 != EOT || tape->d_data1 != EOF){
+
+    /* WAIT while reading in from the tape and going to the disk to write */
+    SYSCALL(WAITIO, TAPEINT, asid-1, 0);
+
+    tape->d_command = READBLK;
+    diskOp(asid-1, tape->d_data1, WRITEBLK);
+  }
+}
+
+/* Performs a read or a write for the disk device. Either stores the 
+   information from the tape into the backing store or reads from the backing
+   store, providing the OS with the data needed at the time. */
+/*  doesn't work -> not completed */
+HIDDEN void diskOp(int * sem, int diskNum, int readOrWrite){
 
   /* go get the address of the disk */
   device_PTR disk = (device_PTR) (INTDEVREG + ((DISKINT-NOSEMS) * DEVREGSIZE * EIGHTPERDEV) + (diskNum * DEVREGSIZE));
@@ -212,12 +225,10 @@ void diskRead(int * sem, int diskNum, int readOrWrite){
   /* turn interrupts off */
   setSTATUS(getSTATUS() | IEPOFF | IMASKOFF);
 
-  /* not sure exactly how to read from the disk, but we'd do it here */
-  /* confusing and awesome code that does a read or write to the disk done here: 
-
-     
-   it's there, you just have to look really hard */
-
+  /* do the actual disk operation */
+  
+  
+  
   /* enable interrupts again now that we're done with the disk*/
   setSTATUS(getSTATUS() | IEPON | IMASKON);
 
