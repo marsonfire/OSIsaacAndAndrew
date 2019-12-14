@@ -87,14 +87,14 @@ void test(){
     debug(1);
     
     /* u-proc initialization, see Kaya 4.7 */
-    uProc->s_asid = (unsigned int) (i - 1); /* you know, i really didn't think this is what would defeat me */
+    uProc->s_asid = getAsid(); /* you know, i really didn't think this is what would defeat me */
     debug(2);
     uProc->s_pc = (memaddr) initUProc;
     uProc->s_t9 = (memaddr) initUProc;
     uProc->s_sp = KUSEG3FIRSTPAGE;
     uProc->s_status = ALLOFF | IEPON | TEON | VMPOFF | KERPON;
     /*create the process we've been working with, with a sys1 */
-    debug(2);
+    debug(3);
     SYSCALL(CREATEPROC, (int)&uProc, 0, 0);
   }
 

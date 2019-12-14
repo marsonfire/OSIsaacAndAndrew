@@ -1,13 +1,29 @@
 By Andrew and Isaac
 
-Status of Files:
-initProc.c    - Compiles and is currently in the debugging stage, something wrong with the individual uproc initialization.
-pager.c       - Currently in process of being written.
-sysSupport    - Compiles and is currently in the debugging stage. Syscalls 10 and 17 have been written and compile
-                for baic VM functions, and the userSyscallHandler is written and compiles.
-test files    - All written and should be running correctly.
+Status of Files/methods:
 
-Currently, the machine will run and output system halted in terminal 0, more than likely due to some fault 
-in the user process initialization. We get to our debug(2) marker in initProc.c before the system crashes. 
-The next file to work on once initProc would be done is the pager file to handle any page faults in the
-system.
+initProc.c - Compiles and is currently in the debugging stage
+ - test: Where we got stuck... we can't get past setting the asid of
+   	 the user process. Have tried lots of things but it always crashes
+	 there and we never are able to reach debug(2) in the code.
+
+ - uProcInit: Written and compiles, but haven't done any debugging because
+   	      setting up our user process in test() was crashing
+
+ - TapeRead: Written and compiles, but haven't done any debugging because
+   	     setting up our user process in test() was crashing
+
+ - DiskOperation: Not completely written, but compiles. Haven't done any
+   		  debugging because our user process in test() is crashing
+
+Pager - Not written, we were focusing on finishing initProc.c and sysSupport.c
+      	and didn't write this.
+
+Phase 3 sys handler - Compiles and is currently in the debugging stage.
+      	    	      Syscalls 10 and 17 have been written and compile. Sys10
+		      only attempts to work with Terminal0 at the moment
+
+Currently, the machine will run and output system halted in terminal 0, more
+than likely due to some fault in the user process initialization. We get
+to our debug(1) marker in initProc.c and then the system crashes when setting
+the user process' asid.
